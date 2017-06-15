@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
+	log "github.com/Sirupsen/logrus"
 	"github.com/uninett/appstore/pkg/helmutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
+	"net/http"
 	"os"
 )
 
@@ -13,5 +15,11 @@ func main() {
 	flag.Parse()
 
 	settings := helmutil.InitHelmSettings(*debug, *tillerHost)
-	serveAPI(settings)
+	router := createRoutes(settings)
+
+	log.SetLevel(log.DebugLevel)
+	log.SetOutput(os.Stderr)
+	log.Debug("Starting server on port 8080")
+	log.Debug("Tiller host: ", settings.TillerHost)
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
