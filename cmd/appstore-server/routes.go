@@ -38,7 +38,6 @@ func createAPIRouter(settings *helm_env.EnvSettings) http.Handler {
 }
 
 func createRoutes(settings *helm_env.EnvSettings) http.Handler {
-
 	baseRouter := chi.NewRouter()
 
 	baseRouter.Use(middleware.RequestID)
