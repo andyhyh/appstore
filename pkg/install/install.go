@@ -273,12 +273,13 @@ func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, setti
 	}
 
 	name := ""
+	dryRun := false
 	res, err := client.InstallReleaseFromChart(
 		chartRequested,
 		namespace,
 		helm.ValueOverrides(rawVals),
 		helm.ReleaseName(name),
-		helm.InstallDryRun(false),
+		helm.InstallDryRun(dryRun),
 		helm.InstallReuseName(false),
 		helm.InstallDisableHooks(false),
 		helm.InstallTimeout(0),
@@ -294,7 +295,7 @@ func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, setti
 
 	// Print the status like status command does
 	status, err := client.ReleaseStatus(rel.Name)
-	if err != nil {
+	if err != nil && dryRun == false {
 		panic(err)
 	}
 
