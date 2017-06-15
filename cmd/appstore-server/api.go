@@ -55,15 +55,15 @@ func serveAPI(settings *helm_env.EnvSettings) {
 		restful.PrettyPrintResponses = false
 	}
 
-	service := new(restful.WebService)
-	service.Path(fmt.Sprintf("/api/v%s", API_version)).Consumes(restful.MIME_JSON)
+	apiService := new(restful.WebService)
+	apiService.Path(fmt.Sprintf("/api/v%s", API_version)).Consumes(restful.MIME_JSON)
 
-	service.Route(service.GET("/packages/{search-query}").To(searchForPackages(settings)))
-	service.Route(service.GET("/packages/").To(listAllPackages(settings)))
-	service.Route(service.POST("/packages/install/{package-name}").To(installPackage(settings)))
-	restful.Add(service)
+	apiService.Route(apiService.GET("/packages/{search-query}").To(searchForPackages(settings)))
+	apiService.Route(apiService.GET("/packages/").To(listAllPackages(settings)))
+	apiService.Route(apiService.POST("/packages/install/{package-name}").To(installPackage(settings)))
+	restful.Add(apiService)
 
-	log.Info("Starting server at port 8080")
+	log.Info("Starting server on port 8080")
 	log.Info("Tiller host: ", settings.TillerHost)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
