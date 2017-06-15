@@ -29,7 +29,7 @@ import (
 // searchMaxScore suggests that any score higher than this is not considered a match.
 const searchMaxScore = 25
 
-func SearchCharts(settings helm_env.EnvSettings, query string, version string) ([]*search.Result, error) {
+func SearchCharts(settings *helm_env.EnvSettings, query string, version string) ([]*search.Result, error) {
 	index, err := buildIndex(settings)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func applyConstraint(res []*search.Result, version string) ([]*search.Result, er
 
 }
 
-func buildIndex(settings helm_env.EnvSettings) (*search.Index, error) {
+func buildIndex(settings *helm_env.EnvSettings) (*search.Index, error) {
 	// Load the repositories.yaml
 	rf, err := repo.LoadRepositoriesFile(settings.Home.RepositoryFile())
 	if err != nil {

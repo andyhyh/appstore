@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
-func InitHelmSettings() helm_env.EnvSettings {
-	var settings helm_env.EnvSettings
+func InitHelmSettings() *helm_env.EnvSettings {
+	settings := new(helm_env.EnvSettings)
 	settings.Home = helm_path.Home(helm_env.DefaultHelmHome)
 	settings.TillerHost = os.Getenv(helm_env.HostEnvVar)
 
