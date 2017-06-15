@@ -3,10 +3,13 @@ package main
 import (
 	"flag"
 	log "github.com/Sirupsen/logrus"
+	"github.com/pressly/chi"
+	"github.com/pressly/chi/middleware"
 	"github.com/uninett/appstore/pkg/helmutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
@@ -15,11 +18,21 @@ func main() {
 	flag.Parse()
 
 	settings := helmutil.InitHelmSettings(*debug, *tillerHost)
-	router := createRoutes(settings)
+
+	baseRouter := chi.NewRouter()
+
+	baseRouter.Use(middleware.RequestID)
+	baseRouter.Use(middleware.RealIP)
+	baseRouter.Use(middleware.Logger)
+	baseRouter.Use(middleware.Recoverer)
+	baseRouter.Use(middleware.CloseNotify)
+	baseRouter.Use(middleware.Timeout(60 * time.Second))
+
+	baseRouter.Mount("/api", createAPIRouter(settings))
 
 	log.SetLevel(log.DebugLevel)
 	log.SetOutput(os.Stderr)
 	log.Debug("Starting server on port 8080")
 	log.Debug("Tiller host: ", settings.TillerHost)
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":8080", baseRouter))
 }
