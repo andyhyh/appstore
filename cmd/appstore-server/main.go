@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	restful "github.com/emicklei/go-restful"
 	"github.com/uninett/appstore/pkg/helmutil"
@@ -8,6 +9,8 @@ import (
 	"net/http"
 	"os"
 )
+
+const API_version string = "0.0.1"
 
 func init() {
 	log.SetOutput(os.Stderr)
@@ -30,10 +33,10 @@ func ListAllPackages(request *restful.Request, response *restful.Response) {
 
 func main() {
 	service := new(restful.WebService)
-	service.Path("/packages").Consumes(restful.MIME_JSON)
+	service.Path(fmt.Sprintf("/api/v%s", API_version)).Consumes(restful.MIME_JSON)
 
-	service.Route(service.GET("/{search-query}").To(SearchForPackages))
-	service.Route(service.GET("/").To(ListAllPackages))
+	service.Route(service.GET("/packages/{search-query}").To(SearchForPackages))
+	service.Route(service.GET("/packages/").To(ListAllPackages))
 	restful.Add(service)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
