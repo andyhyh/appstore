@@ -7,14 +7,9 @@ import (
 	"github.com/uninett/appstore/pkg/helmutil"
 	"github.com/uninett/appstore/pkg/search"
 	"net/http"
-	"os"
 )
 
 const API_version string = "0.0.1"
-
-func init() {
-	log.SetOutput(os.Stderr)
-}
 
 func SearchForPackages(request *restful.Request, response *restful.Response) {
 	query := request.PathParameter("search-query")
