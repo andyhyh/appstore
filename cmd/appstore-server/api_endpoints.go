@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
@@ -52,32 +51,4 @@ func installPackage(settings *helm_env.EnvSettings) http.HandlerFunc {
 			render.JSON(w, req, err)
 		}
 	}
-}
-
-func apiVersionCtx(version string) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r = r.WithContext(context.WithValue(r.Context(), "api.version", version))
-			next.ServeHTTP(w, r)
-		})
-	}
-}
-
-func createPackageRouter(settings *helm_env.EnvSettings) http.Handler {
-	r := chi.NewRouter()
-	r.Get("/", listAllPackages(settings))
-	r.Get("/:searchQuery", searchForPackages(settings))
-	r.Post("/install/:packageName", installPackage(settings))
-	return r
-}
-
-func CreateAPIRouter(settings *helm_env.EnvSettings) http.Handler {
-	baseAPIrouter := chi.NewRouter()
-
-	baseAPIrouter.Route("/v1", func(baseAPIrouter chi.Router) {
-		baseAPIrouter.Use(apiVersionCtx("v1"))
-		baseAPIrouter.Mount("/packages", createPackageRouter(settings))
-	})
-
-	return baseAPIrouter
 }
