@@ -40,7 +40,6 @@ func installPackage(settings *helm_env.EnvSettings) func(request *restful.Reques
 			response.WriteError(http.StatusInternalServerError, err)
 		}
 
-		settings := helmutil.InitHelmSettings()
 		res, err := install.InstallChart(packageName, chartSettings, settings)
 
 		if err == nil {
