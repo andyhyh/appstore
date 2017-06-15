@@ -4,13 +4,13 @@ import (
 	"k8s.io/helm/pkg/helm"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	helm_path "k8s.io/helm/pkg/helm/helmpath"
-	"os"
 )
 
-func InitHelmSettings() *helm_env.EnvSettings {
+func InitHelmSettings(debug bool, tillerHost string) *helm_env.EnvSettings {
 	settings := new(helm_env.EnvSettings)
 	settings.Home = helm_path.Home(helm_env.DefaultHelmHome)
-	settings.TillerHost = os.Getenv(helm_env.HostEnvVar)
+	settings.TillerHost = tillerHost
+	settings.Debug = debug
 
 	return settings
 }
