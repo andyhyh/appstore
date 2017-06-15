@@ -63,7 +63,7 @@ func serveAPI(settings *helm_env.EnvSettings) {
 	apiService.Route(apiService.POST("/packages/install/{package-name}").To(installPackage(settings)))
 	restful.Add(apiService)
 
-	log.Info("Starting server on port 8080")
-	log.Info("Tiller host: ", settings.TillerHost)
+	log.Debug("Starting server on port 8080")
+	log.Debug("Tiller host: ", settings.TillerHost)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
