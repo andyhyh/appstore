@@ -31,7 +31,6 @@ func listAllPackages(settings *helm_env.EnvSettings) func(request *restful.Reque
 func installPackage(settings *helm_env.EnvSettings) func(request *restful.Request, response *restful.Response) {
 	return func(request *restful.Request, response *restful.Response) {
 		packageName := request.PathParameter("package-name")
-		log.Warn(packageName)
 
 		chartSettings := new(helmutil.ChartSettings)
 		err := request.ReadEntity(&chartSettings)
