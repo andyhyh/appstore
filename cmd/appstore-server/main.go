@@ -16,14 +16,12 @@ func SearchForPackages(request *restful.Request, response *restful.Response) {
 	query := request.PathParameter("search-query")
 	settings := helmutil.InitHelmSettings()
 	results, _ := search.SearchCharts(settings, query, "")
-	response.PrettyPrint(false)
 	response.WriteAsJson(results)
 }
 
 func ListAllPackages(request *restful.Request, response *restful.Response) {
 	settings := helmutil.InitHelmSettings()
 	results, _ := search.SearchCharts(settings, "", "")
-	response.PrettyPrint(false)
 	response.WriteAsJson(results)
 }
 
@@ -42,7 +40,6 @@ func InstallPackage(request *restful.Request, response *restful.Response) {
 	res, err := install.InstallChart(packageName, chartSettings, &settings)
 
 	if err == nil {
-		response.PrettyPrint(false)
 		response.WriteAsJson(res)
 	} else {
 		response.WriteError(http.StatusInternalServerError, err)
@@ -51,6 +48,10 @@ func InstallPackage(request *restful.Request, response *restful.Response) {
 
 func main() {
 	service := new(restful.WebService)
+	debug := false
+	if debug == false {
+		restful.PrettyPrintResponses = false
+	}
 	service.Path(fmt.Sprintf("/api/v%s", API_version)).Consumes(restful.MIME_JSON)
 
 	service.Route(service.GET("/packages/{search-query}").To(SearchForPackages))
