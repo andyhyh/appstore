@@ -13,7 +13,7 @@ import (
 
 const API_version string = "0.0.1"
 
-func SearchForPackages(settings *helm_env.EnvSettings) func(request *restful.Request, response *restful.Response) {
+func searchForPackages(settings *helm_env.EnvSettings) func(request *restful.Request, response *restful.Response) {
 	return func(request *restful.Request, response *restful.Response) {
 		query := request.PathParameter("search-query")
 		results, _ := search.SearchCharts(settings, query, "")
@@ -21,14 +21,14 @@ func SearchForPackages(settings *helm_env.EnvSettings) func(request *restful.Req
 	}
 }
 
-func ListAllPackages(settings *helm_env.EnvSettings) func(request *restful.Request, response *restful.Response) {
+func listAllPackages(settings *helm_env.EnvSettings) func(request *restful.Request, response *restful.Response) {
 	return func(request *restful.Request, response *restful.Response) {
 		results, _ := search.SearchCharts(settings, "", "")
 		response.WriteAsJson(results)
 	}
 }
 
-func InstallPackage(settings *helm_env.EnvSettings) func(request *restful.Request, response *restful.Response) {
+func installPackage(settings *helm_env.EnvSettings) func(request *restful.Request, response *restful.Response) {
 	return func(request *restful.Request, response *restful.Response) {
 		packageName := request.PathParameter("package-name")
 		log.Warn(packageName)
@@ -54,16 +54,18 @@ func InstallPackage(settings *helm_env.EnvSettings) func(request *restful.Reques
 func main() {
 	service := new(restful.WebService)
 	settings := helmutil.InitHelmSettings()
+
 	debug := false
 	if debug == false {
 		restful.PrettyPrintResponses = false
 	}
 	service.Path(fmt.Sprintf("/api/v%s", API_version)).Consumes(restful.MIME_JSON)
 
-	service.Route(service.GET("/packages/{search-query}").To(SearchForPackages(settings)))
-	service.Route(service.GET("/packages/").To(ListAllPackages(settings)))
-	service.Route(service.POST("/packages/install/{package-name}").To(InstallPackage(settings)))
+	service.Route(service.GET("/packages/{search-query}").To(searchForPackages(settings)))
+	service.Route(service.GET("/packages/").To(listAllPackages(settings)))
+	service.Route(service.POST("/packages/install/{package-name}").To(installPackage(settings)))
 	restful.Add(service)
+
 	log.Info("Starting server at port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
