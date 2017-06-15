@@ -17,12 +17,14 @@ func SearchForPackages(request *restful.Request, response *restful.Response) {
 	query := request.PathParameter("search-query")
 	settings := helmutil.InitHelmSettings()
 	results, _ := search.SearchCharts(settings, query, "")
+	response.PrettyPrint(false)
 	response.WriteAsJson(results)
 }
 
 func ListAllPackages(request *restful.Request, response *restful.Response) {
 	settings := helmutil.InitHelmSettings()
 	results, _ := search.SearchCharts(settings, "", "")
+	response.PrettyPrint(false)
 	response.WriteAsJson(results)
 }
 
