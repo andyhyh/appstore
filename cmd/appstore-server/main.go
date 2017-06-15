@@ -67,5 +67,6 @@ func main() {
 	restful.Add(service)
 
 	log.Info("Starting server at port 8080")
+	log.Info("Tiller host: ", settings.TillerHost)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
