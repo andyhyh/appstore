@@ -1,27 +1,29 @@
 <!doctype html>
 
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Appstore</title>
-</head>
+  <head>
+    <meta charset="utf-8">
+    <title>Appstore</title>
+  </head>
 
-<body>
-  <div>
-    <h2>{{ .Package.Chart.Name }}</h2>
-    <p>{{ .Package.Chart.Description }}</p>
-  </div>
-  <div>
-    <h3> Values: </h3>
-		<form id="installationForm">
-			Version:<br>
-			<input type="text" name="version"><br>
-      <input type="submit" name="submit" value="Install">
-      <p id="installStatus"></p>
-		</form> 
-  </div>
-</body>
-<script>
+  <body>
+    <div>
+      <h2>{{ .Package.Chart.Name }}</h2>
+      <p>{{ .Package.Chart.Description }}</p>
+    </div>
+    <div>
+      <h3> Values: </h3>
+      <form id="installationForm">
+        Version:<br>
+        <input type="text" name="version"><br>
+        <input type="submit" name="submit" value="Install">
+        <p id="installStatus"></p>
+        <p id="releaseName"></p>
+        <pre><p id="installStatusDetails"></p></pre>
+      </form> 
+    </div>
+  </body>
+  <script>
 
 function installPackage(event) {
   event.preventDefault();
@@ -29,18 +31,23 @@ function installPackage(event) {
   var version = form.elements["version"].innterHTML;
   var xhr = new XMLHttpRequest();
   var data = JSON.stringify({
-      "Version": version,
+    "Version": version,
   }); 
   xhr.open('POST', "/api/v1/packages/install/" + packageName);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.onload = function() {
-      if (xhr.status === 200) {
-          var res = JSON.parse(xhr.responseText);
-          var statusText = document.getElementById('installStatus');
-          statusText.innerHTML = "The package was successfully installed!";
-      } else {
-          statusText.innerHTML = "The package was not successfully installed!";
-      }
+    if (xhr.status === 200) {
+      var res = JSON.parse(xhr.responseText);
+      var releaseName = document.getElementById('releaseName');
+      var statusText = document.getElementById('installStatus');
+      var statusTextDetails = document.getElementById('installStatusDetails');
+      var details = res.info.status.resources;
+      statusText.innerHTML = "The package was successfully installed!";
+      statusTextDetails.innerHTML = details;
+      releaseName.innerHTML = "Release name: " + res.name;
+    } else {
+      statusText.innerHTML = "The package was not successfully installed!";
+    }
   };
   xhr.send(data);
 }
@@ -48,5 +55,5 @@ function installPackage(event) {
 var packageName = "{{ .Package.Chart.Name }}";
 var button = document.getElementById("installationForm").elements["submit"];
 button.addEventListener("click", installPackage);
-</script>
+  </script>
 </html>
