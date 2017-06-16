@@ -79,6 +79,28 @@ func SearchCharts(settings *helm_env.EnvSettings, query string, version string) 
 	return data, err
 }
 
+func GetSinglePackage(settings *helm_env.EnvSettings, packageName string) (*search.Result, error) {
+	err := ensureIndex(settings)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []*search.Result
+
+	res, err = index.Search(packageName, 1, false)
+	if err != nil {
+		return nil, err
+	}
+	if len(res) > 1 {
+		log.Warn("More than one package found! Returning the first element.")
+	} else if len(res) == 0 {
+		log.Warn("Package not found!")
+		return nil, nil
+	}
+
+	return res[0], err
+}
+
 func applyConstraint(res []*search.Result, version string) ([]*search.Result, error) {
 	if len(version) == 0 {
 		return res, nil
