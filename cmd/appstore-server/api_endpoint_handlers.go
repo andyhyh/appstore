@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-func searchForPackages(settings *helm_env.EnvSettings) http.HandlerFunc {
+func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := chi.URLParam(r, "searchQuery")
 		results, _ := search.SearchCharts(settings, query, "")
@@ -19,14 +19,14 @@ func searchForPackages(settings *helm_env.EnvSettings) http.HandlerFunc {
 	}
 }
 
-func listAllPackages(settings *helm_env.EnvSettings) http.HandlerFunc {
+func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		results, _ := search.SearchCharts(settings, "", "")
 		render.JSON(w, r, results)
 	}
 }
 
-func installPackage(settings *helm_env.EnvSettings) http.HandlerFunc {
+func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		packageName := chi.URLParam(req, "packageName")
 

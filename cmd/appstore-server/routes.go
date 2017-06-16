@@ -18,9 +18,9 @@ func apiVersionCtx(version string) func(next http.Handler) http.Handler {
 
 func createPackageRouter(settings *helm_env.EnvSettings) http.Handler {
 	r := chi.NewRouter()
-	r.Get("/", listAllPackages(settings))
-	r.Get("/:searchQuery", searchForPackages(settings))
-	r.Post("/install/:packageName", installPackage(settings))
+	r.Get("/", makeListAllPackagesHandler(settings))
+	r.Get("/:searchQuery", makeSearchForPackagesHandler(settings))
+	r.Post("/install/:packageName", makeInstallPackageHandler(settings))
 	return r
 }
 
