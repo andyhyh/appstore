@@ -32,7 +32,7 @@ func main() {
 	baseRouter.Use(middleware.Timeout(60 * time.Second))
 
 	baseRouter.Mount("/api", createAPIRouter(settings))
-	templates := template.Must(template.ParseFiles("ui/templates/index.html"))
+	templates := template.Must(template.ParseFiles("ui/templates/index.html", "ui/templates/package.html"))
 	baseRouter.Mount("/", createDashboardRouter(settings, templates))
 
 	log.SetLevel(log.DebugLevel)

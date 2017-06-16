@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/pressly/chi"
 	"github.com/uninett/appstore/pkg/search"
 	"html/template"
 	helm_search "k8s.io/helm/cmd/helm/search"
@@ -19,5 +20,13 @@ func makePackageIndexHandler(settings *helm_env.EnvSettings, templates *template
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, _ := search.GetAllCharts(settings)
 		renderTemplate(w, templates, "index", struct{ Results []*helm_search.Result }{res})
+	}
+}
+
+func makePackageDetailHandler(settings *helm_env.EnvSettings, templates *template.Template) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		packageName := chi.URLParam(req, "packageName")
+		res, _ := search.GetSinglePackage(settings, packageName)
+		renderTemplate(w, templates, "package", struct{ Package *helm_search.Result }{res})
 	}
 }
