@@ -1,5 +1,5 @@
-hash: b338c7cacb0bbb6cf6ffec0bf288348e18eb0754f386b4dee6f47c805dd0ec5c
-updated: 2017-06-16T09:16:28.558482705+02:00
+hash: cfef155cbf1a0af9e9fba809e1ebc2142843e60f74b1abb0146cdf551c1979bd
+updated: 2017-06-16T11:05:39.977518862+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -91,7 +91,7 @@ imports:
 - name: github.com/facebookgo/symwalk
   version: 42004b9f322246749dd73ad71008b1f3160c0052
 - name: github.com/ghodss/yaml
-  version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
+  version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -148,7 +148,7 @@ imports:
   - jlexer
   - jwriter
 - name: github.com/Masterminds/semver
-  version: 3f0ab6d4ab4bed1c61caf056b63a6e62190c7801
+  version: ""
 - name: github.com/Masterminds/sprig
   version: 9526be0327b26ad31aa70296a7b10704883976d5
 - name: github.com/mitchellh/go-wordwrap

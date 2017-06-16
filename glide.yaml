@@ -1,12 +1,12 @@
 package: github.com/uninett/appstore
 import:
 - package: github.com/Masterminds/semver
+  version: ~1.2.3
 - package: github.com/Masterminds/sprig
-  version: ^2.12.0
+  version: ^2.12
 - package: github.com/Sirupsen/logrus
   version: ^1.0.0
 - package: github.com/ghodss/yaml
-  version: ^1.0.0
 - package: github.com/pressly/chi
   version: ^2.1.0
   subpackages:
