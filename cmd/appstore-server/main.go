@@ -7,6 +7,7 @@ import (
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"github.com/uninett/appstore/pkg/helmutil"
+	"html/template"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"net/http"
 	"os"
@@ -31,7 +32,8 @@ func main() {
 	baseRouter.Use(middleware.Timeout(60 * time.Second))
 
 	baseRouter.Mount("/api", createAPIRouter(settings))
-	baseRouter.Mount("/", createDashboardRouter(settings))
+	templates := template.Must(template.ParseFiles("ui/templates/index.html"))
+	baseRouter.Mount("/", createDashboardRouter(settings, templates))
 
 	log.SetLevel(log.DebugLevel)
 	log.SetOutput(os.Stderr)

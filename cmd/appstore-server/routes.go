@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/pressly/chi"
+	"html/template"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"net/http"
 )
@@ -35,11 +36,11 @@ func createAPIRouter(settings *helm_env.EnvSettings) http.Handler {
 	return baseAPIrouter
 }
 
-func createDashboardRouter(settings *helm_env.EnvSettings) http.Handler {
+func createDashboardRouter(settings *helm_env.EnvSettings, templates *template.Template) http.Handler {
 	baseDashboardRouter := chi.NewRouter()
 
 	baseDashboardRouter.Route("/", func(baseDashboardRouter chi.Router) {
-		baseDashboardRouter.Get("/", makePackageIndexHandler(settings))
+		baseDashboardRouter.Get("/", makePackageIndexHandler(settings, templates))
 	})
 
 	return baseDashboardRouter
