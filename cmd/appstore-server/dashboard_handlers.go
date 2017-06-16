@@ -3,9 +3,11 @@ package main
 import (
 	"github.com/pressly/chi"
 	"github.com/uninett/appstore/pkg/search"
+	"github.com/uninett/appstore/pkg/status"
 	"html/template"
 	helm_search "k8s.io/helm/cmd/helm/search"
 	helm_env "k8s.io/helm/pkg/helm/environment"
+	"k8s.io/helm/pkg/proto/hapi/release"
 	"net/http"
 )
 
@@ -28,5 +30,12 @@ func makePackageDetailHandler(settings *helm_env.EnvSettings, templates *templat
 		packageName := chi.URLParam(req, "packageName")
 		res, _ := search.GetSinglePackage(settings, packageName)
 		renderTemplate(w, templates, "package", struct{ Package *helm_search.Result }{res})
+	}
+}
+
+func makeReleaseOverviewHandle(settings *helm_env.EnvSettings, templates *template.Template) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		res, _ := status.GetAllReleases(settings)
+		renderTemplate(w, templates, "releases", struct{ Results []*release.Release }{res})
 	}
 }
