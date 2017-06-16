@@ -1,2 +1,4 @@
 *.tgz
 *.sw*
+vendor/
+bin/
