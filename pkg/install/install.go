@@ -25,7 +25,6 @@ import (
 	"k8s.io/helm/pkg/kube"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/services"
-	"k8s.io/helm/pkg/repo"
 )
 
 type valueFiles []string
@@ -116,9 +115,8 @@ func vals(valueFiles []string) ([]byte, error) {
 // - URL
 //
 // If 'verify' is true, this will attempt to also verify the chart.
-func locateChartPath(repoURL, name, version string, verify bool, keyring,
-	certFile, keyFile, caFile string, settings *helm_env.EnvSettings) (string, error) {
-	name = strings.TrimSpace(name)
+func locateChartPath(name, version string, verify bool, keyring string, settings *helm_env.EnvSettings) (string, error) {
+	name = "stable/" + strings.TrimSpace(name)
 	version = strings.TrimSpace(version)
 	if fi, err := os.Stat(name); err == nil {
 		abs, err := filepath.Abs(name)
@@ -152,14 +150,6 @@ func locateChartPath(repoURL, name, version string, verify bool, keyring,
 	}
 	if verify {
 		dl.Verify = downloader.VerifyAlways
-	}
-	if repoURL != "" {
-		chartURL, err := repo.FindChartInRepoURL(repoURL, name, version,
-			certFile, keyFile, caFile, getter.All(*settings))
-		if err != nil {
-			return "", err
-		}
-		name = chartURL
 	}
 
 	filename, _, err := dl.DownloadTo(name, version, ".")
@@ -224,11 +214,9 @@ func checkDependencies(ch *chart.Chart, reqs *chartutil.Requirements) error {
 func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings) (*services.GetReleaseStatusResponse, error) {
 	client := helmutil.InitHelmClient(settings)
 	namespace := ""
-	repo := "https://kubernetes-charts.storage.googleapis.com"
 
 	// TODO: Handle TLS related things:
-	cp, err := locateChartPath(repo, chartName, chartSettings.Version, false, "",
-		"", "", "", settings)
+	cp, err := locateChartPath(chartName, chartSettings.Version, false, "", settings)
 	if err != nil {
 		panic(err)
 	}

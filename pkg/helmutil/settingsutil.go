@@ -8,7 +8,7 @@ import (
 
 func InitHelmSettings(debug bool, tillerHost string) *helm_env.EnvSettings {
 	settings := new(helm_env.EnvSettings)
-	settings.Home = helm_path.Home(helm_env.DefaultHelmHome)
+	settings.Home = helm_path.Home(helm_env.DefaultHelmHome())
 	settings.TillerHost = tillerHost
 	settings.Debug = debug
 
