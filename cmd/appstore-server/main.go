@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
@@ -14,6 +15,7 @@ import (
 
 func main() {
 	debug := flag.Bool("debug", false, "Enable debug about")
+	port := flag.Int("port", 8080, "The port to use when hosting the server")
 	tillerHost := flag.String("host", os.Getenv(helm_env.HostEnvVar), "Enable debug about")
 	flag.Parse()
 
@@ -32,7 +34,7 @@ func main() {
 
 	log.SetLevel(log.DebugLevel)
 	log.SetOutput(os.Stderr)
-	log.Debug("Starting server on port 8080")
+	log.Debug("Starting server on port ", *port)
 	log.Debug("Tiller host: ", settings.TillerHost)
-	log.Fatal(http.ListenAndServe(":8080", baseRouter))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), baseRouter))
 }
