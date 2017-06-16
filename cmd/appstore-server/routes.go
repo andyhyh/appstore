@@ -34,3 +34,13 @@ func createAPIRouter(settings *helm_env.EnvSettings) http.Handler {
 
 	return baseAPIrouter
 }
+
+func createDashboardRouter(settings *helm_env.EnvSettings) http.Handler {
+	baseDashboardRouter := chi.NewRouter()
+
+	baseDashboardRouter.Route("/", func(baseDashboardRouter chi.Router) {
+		baseDashboardRouter.Get("/", makePackageIndexHandler(settings))
+	})
+
+	return baseDashboardRouter
+}

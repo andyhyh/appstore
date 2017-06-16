@@ -31,6 +31,7 @@ func main() {
 	baseRouter.Use(middleware.Timeout(60 * time.Second))
 
 	baseRouter.Mount("/api", createAPIRouter(settings))
+	baseRouter.Mount("/", createDashboardRouter(settings))
 
 	log.SetLevel(log.DebugLevel)
 	log.SetOutput(os.Stderr)

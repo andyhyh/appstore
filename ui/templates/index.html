@@ -1,0 +1,19 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Appstore</title>
+</head>
+
+<body>
+  <div>
+    {{ range .Results }}
+    <div>
+        <h3>{{ .Name }}</h3>
+        <p>{{ .Chart.Description }}</p>
+    </div>
+    {{ end }}
+  </div>
+</body>
+</html>
