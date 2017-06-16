@@ -21,7 +21,7 @@ func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFu
 
 func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		results, _ := search.SearchCharts(settings, "", "")
+		results, _ := search.GetAllCharts(settings)
 		render.JSON(w, r, results)
 	}
 }

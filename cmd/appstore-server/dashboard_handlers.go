@@ -18,7 +18,7 @@ func renderTemplate(w http.ResponseWriter, templates *template.Template, tmpl_na
 func makePackageIndexHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		templates := template.Must(template.ParseFiles("ui/templates/index.html"))
-		res, _ := search.SearchCharts(settings, "", "")
+		res, _ := search.GetAllCharts(settings)
 		renderTemplate(w, templates, "index", struct{ Results []*helm_search.Result }{res})
 	}
 }
