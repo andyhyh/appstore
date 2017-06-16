@@ -29,8 +29,22 @@ import (
 // searchMaxScore suggests that any score higher than this is not considered a match.
 const searchMaxScore = 25
 
+var index *search.Index
+
+func ensureIndex(settings *helm_env.EnvSettings) error {
+	if index == nil {
+		newIndex, err := buildIndex(settings)
+		index = newIndex
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func GetAllCharts(settings *helm_env.EnvSettings) ([]*search.Result, error) {
-	index, err := buildIndex(settings)
+	err := ensureIndex(settings)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +54,7 @@ func GetAllCharts(settings *helm_env.EnvSettings) ([]*search.Result, error) {
 }
 
 func SearchCharts(settings *helm_env.EnvSettings, query string, version string) ([]*search.Result, error) {
-	index, err := buildIndex(settings)
+	err := ensureIndex(settings)
 	if err != nil {
 		return nil, err
 	}
