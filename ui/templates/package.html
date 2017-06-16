@@ -28,10 +28,10 @@
 function installPackage(event) {
   event.preventDefault();
   var form = document.getElementById("installationForm");
-  var version = form.elements["version"].innterHTML;
+  var version = form.elements["version"].value;
   var xhr = new XMLHttpRequest();
   var data = JSON.stringify({
-    "Version": version,
+    "version": version,
   }); 
   xhr.open('POST', "/api/v1/packages/install/" + packageName);
   xhr.setRequestHeader('Content-Type', 'application/json');
