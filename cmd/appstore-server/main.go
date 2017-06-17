@@ -14,6 +14,9 @@ import (
 	"time"
 )
 
+var startTime time.Time
+var version = "none"
+
 func main() {
 	debug := flag.Bool("debug", false, "Enable debug about")
 	port := flag.Int("port", 8080, "The port to use when hosting the server")
@@ -34,10 +37,12 @@ func main() {
 	baseRouter.Mount("/api", createAPIRouter(settings))
 	templates := template.Must(template.ParseGlob("ui/templates/*.html"))
 	baseRouter.Mount("/", createDashboardRouter(settings, templates))
+	baseRouter.Get("/healthz", healthzHandler)
 
 	log.SetLevel(log.DebugLevel)
 	log.SetOutput(os.Stderr)
 	log.Debug("Starting server on port ", *port)
 	log.Debug("Tiller host: ", settings.TillerHost)
+	startTime = time.Now()
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), baseRouter))
 }
