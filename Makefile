@@ -6,8 +6,8 @@ BINDIR := $(CURDIR)/bin
 build:
 	GOBIN=$(BINDIR) ${GO_EXECUTABLE} install github.com/uninett/appstore/cmd/...
 
-.PHONY: bootstrap
-bootstrap:
+.PHONY: deps
+deps:
 	glide install --strip-vendor
 	scripts/setup-apimachinery.sh
 	mkdir -p $(BINDIR)
