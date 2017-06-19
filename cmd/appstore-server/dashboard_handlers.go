@@ -20,7 +20,13 @@ func renderTemplate(w http.ResponseWriter, templates *template.Template, tmpl_na
 
 func makePackageIndexHandler(settings *helm_env.EnvSettings, templates *template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		results, _ := search.GetAllCharts(settings)
+		results, err := search.GetAllCharts(settings)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		newestPackages := search.GetNewestVersion(results)
 		search.SortByName(newestPackages)
 		renderTemplate(w, templates, "index", struct {

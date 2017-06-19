@@ -24,6 +24,12 @@ func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFu
 func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		results, _ := search.GetAllCharts(settings)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		newestPackages := search.GetNewestVersion(results)
 		search.SortByName(newestPackages)
 		render.JSON(w, r, (newestPackages))
