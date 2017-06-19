@@ -23,7 +23,7 @@ func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFu
 
 func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		results, _ := search.GetAllCharts(settings)
+		results, err := search.GetAllCharts(settings)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
