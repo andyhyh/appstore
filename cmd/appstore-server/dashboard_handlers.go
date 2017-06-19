@@ -60,7 +60,13 @@ func makePackageDetailHandler(settings *helm_env.EnvSettings, templates *templat
 
 func makeReleaseOverviewHandle(settings *helm_env.EnvSettings, templates *template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		res, _ := status.GetAllReleases(settings)
+		res, err := status.GetAllReleases(settings)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		renderTemplate(w, templates, "releases", struct{ Results []*release.Release }{res})
 	}
 }
