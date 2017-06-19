@@ -50,7 +50,7 @@ func makePackageDetailHandler(settings *helm_env.EnvSettings, templates *templat
 			return
 		}
 
-		newestVersion, otherVersions := packageVersions[len(packageVersions)-1], packageVersions[:len(packageVersions)-1]
+		newestVersion, otherVersions := packageVersions[0], packageVersions[1:len(packageVersions)]
 		renderTemplate(w, templates, "package", struct {
 			NewestVersion *helm_search.Result
 			OtherVersions []*helm_search.Result

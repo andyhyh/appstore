@@ -16,6 +16,7 @@
       <form id="installationForm">
         Version:<br>
          <select name="version">
+           <option value="{{ .NewestVersion.Chart.Version }}">{{ .NewestVersion.Chart.Version }}</option>
            {{ range .OtherVersions }}
            <option value="{{ .Chart.Version }}">{{ .Chart.Version }}</option>
            {{ end }}
