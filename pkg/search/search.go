@@ -130,8 +130,7 @@ func GetSinglePackage(settings *helm_env.EnvSettings, packageName string) ([]*se
 	}
 
 	if len(results) == 0 {
-		log.Warn("Package not found!")
-		return nil, nil
+		return nil, fmt.Errorf("Package not found!")
 	}
 	SortByRevision(results)
 	return results, err
