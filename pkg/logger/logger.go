@@ -24,9 +24,7 @@ func Logger(next http.Handler) http.Handler {
 	}
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		user := "unknown"
-		reqID := middleware.GetReqID(r.Context())
-		entry := extractFromReq(log, reqID, user, r)
+		entry := extractFromReq(log, r)
 		lw := middleware.NewWrapResponseWriter(w, httpProtoMajor)
 
 		t1 := time.Now()
@@ -41,7 +39,9 @@ func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func extractFromReq(log *logrus.Logger, reqID string, user string, r *http.Request) *logrus.Entry {
+func extractFromReq(log *logrus.Logger, r *http.Request) *logrus.Entry {
+	user := "unknown"
+	reqID := middleware.GetReqID(r.Context())
 	entry := logrus.NewEntry(log).WithFields(logrus.Fields{
 		"reqID":     reqID,
 		"method":    r.Method,
