@@ -27,6 +27,7 @@ func main() {
 	settings := helmutil.InitHelmSettings(*debug, *tillerHost)
 
 	baseRouter := chi.NewRouter()
+	logger.SetDebug(*debug)
 
 	baseRouter.Use(middleware.RequestID)
 	baseRouter.Use(middleware.RealIP)

@@ -11,14 +11,22 @@ import (
 	"github.com/pressly/chi/middleware"
 )
 
+var debug = false
+
 //
 // Adapted from chi/middleware/logger to use logrus/JSON-logging
 //
 
+func SetDebug(enableDebug bool) {
+	debug = enableDebug
+}
+
 func Logger(next http.Handler) http.Handler {
 	log := logrus.New()
 	log.Level = logrus.InfoLevel
-	log.Formatter = &logrus.JSONFormatter{}
+	if !debug {
+		log.Formatter = &logrus.JSONFormatter{}
+	}
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		user := "unknown"
@@ -63,7 +71,9 @@ func extractFromReq(log *logrus.Logger, reqID string, user string, r *http.Reque
 func GetApiRequestLogger(r *http.Request) *logrus.Entry {
 	request_id := middleware.GetReqID(r.Context())
 	apiRequestLogger := logrus.New()
-	apiRequestLogger.Formatter = &logrus.JSONFormatter{}
+	if !debug {
+		apiRequestLogger.Formatter = &logrus.JSONFormatter{}
+	}
 	apiRequestLogger.Level = logrus.DebugLevel
 
 	return apiRequestLogger.WithFields(logrus.Fields{"reqID": request_id})
