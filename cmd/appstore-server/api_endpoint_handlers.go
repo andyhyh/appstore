@@ -31,6 +31,10 @@ func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		packageName := chi.URLParam(req, "packageName")
+		if packageName == "" {
+			http.Error(w, http.StatusText(404), 404)
+			return
+		}
 		log.Debug("Installing package: " + packageName)
 
 		chartSettings := new(helmutil.ChartSettings)
