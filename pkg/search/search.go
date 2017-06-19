@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"github.com/Masterminds/semver"
 	log "github.com/Sirupsen/logrus"
+	"github.com/uninett/appstore/pkg/debug"
+	"time"
 
 	"k8s.io/helm/cmd/helm/search"
 	helm_env "k8s.io/helm/pkg/helm/environment"
@@ -54,6 +56,7 @@ func GetAllCharts(settings *helm_env.EnvSettings) ([]*search.Result, error) {
 }
 
 func SearchCharts(settings *helm_env.EnvSettings, query string, version string) ([]*search.Result, error) {
+	t1 := time.Now()
 	err := ensureIndex(settings)
 	if err != nil {
 		return nil, err
@@ -76,10 +79,24 @@ func SearchCharts(settings *helm_env.EnvSettings, query string, version string) 
 		return nil, err
 	}
 
+	defer debug.GetFunctionTiming(t1,
+		"search.SearchCharts returned",
+		log.Fields{
+			"query":       query,
+			"num_results": len(data),
+		},
+	)
+
 	return data, err
 }
 
 func GetNewestVersion(packages []*search.Result) []*search.Result {
+	defer debug.GetFunctionTiming(time.Now(),
+		"search.GetNewestVersion returned",
+		log.Fields{
+			"num_packages": len(packages),
+		},
+	)
 	newestVersions := make(map[string]*search.Result)
 	for _, p := range packages {
 		chartName := p.Chart.GetName()
