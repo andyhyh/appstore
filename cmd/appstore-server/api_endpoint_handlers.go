@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
@@ -37,8 +38,10 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 		err := decoder.Decode(&chartSettings)
 
 		if err != nil {
-			render.Status(req, http.StatusInternalServerError)
-			render.JSON(w, req, err)
+			log.Debug(fmt.Sprintf("Error decoding the POSTed JSON: '%s'", req.Body))
+			render.Status(req, http.StatusBadRequest)
+			render.JSON(w, req, "Invalid JSON!")
+			return
 		}
 
 		res, err := install.InstallChart(packageName, chartSettings, settings)
