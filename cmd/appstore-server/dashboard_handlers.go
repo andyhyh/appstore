@@ -32,8 +32,12 @@ func makePackageIndexHandler(settings *helm_env.EnvSettings, templates *template
 func makePackageDetailHandler(settings *helm_env.EnvSettings, templates *template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		packageName := chi.URLParam(req, "packageName")
-		res, _ := search.GetSinglePackage(settings, packageName)
-		renderTemplate(w, templates, "package", struct{ Package *helm_search.Result }{res})
+		packageVersions, _ := search.GetSinglePackage(settings, packageName)
+		newestVersion, otherVersions := packageVersions[len(packageVersions)-1], packageVersions[:len(packageVersions)-1]
+		renderTemplate(w, templates, "package", struct {
+			NewestVersion *helm_search.Result
+			OtherVersions []*helm_search.Result
+		}{newestVersion, otherVersions})
 	}
 }
 

@@ -8,14 +8,18 @@
 
   <body>
     <div>
-      <h2>{{ .Package.Chart.Name }}</h2>
-      <p>{{ .Package.Chart.Description }}</p>
+      <h2>{{ .NewestVersion.Chart.Name }}</h2>
+      <p>{{ .NewestVersion.Chart.Description }}</p>
     </div>
     <div>
       <h3> Values: </h3>
       <form id="installationForm">
         Version:<br>
-        <input type="text" name="version"><br>
+         <select name="version">
+           {{ range .OtherVersions }}
+           <option value="{{ .Chart.Version }}">{{ .Chart.Version }}</option>
+           {{ end }}
+        </select> 
         <input type="submit" name="submit" value="Install">
         <p id="installStatus"></p>
         <p id="releaseName"></p>
@@ -28,7 +32,8 @@
 function installPackage(event) {
   event.preventDefault();
   var form = document.getElementById("installationForm");
-  var version = form.elements["version"].value;
+  var versionsSelector = form.elements["version"];
+  var version = versionsSelector.options[versionsSelector.selectedIndex].value
   var xhr = new XMLHttpRequest();
   var data = JSON.stringify({
     "version": version,
@@ -52,7 +57,7 @@ function installPackage(event) {
   xhr.send(data);
 }
 
-var packageName = "{{ .Package.Chart.Name }}";
+var packageName = "{{ .NewestVersion.Chart.Name }}";
 var button = document.getElementById("installationForm").elements["submit"];
 button.addEventListener("click", installPackage);
   </script>
