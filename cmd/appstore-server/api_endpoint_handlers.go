@@ -33,9 +33,6 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 		chartSettings := new(helmutil.ChartSettings)
 		decoder := json.NewDecoder(req.Body)
 		err := decoder.Decode(&chartSettings)
-		if err != nil {
-			panic(err)
-		}
 
 		if err != nil {
 			render.Status(req, http.StatusInternalServerError)
