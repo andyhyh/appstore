@@ -114,26 +114,27 @@ func GroupPackages(packages []*search.Result) map[string][]*search.Result {
 	return packageGroups
 }
 
-func GetSinglePackage(settings *helm_env.EnvSettings, packageName string) (*search.Result, error) {
+func GetSinglePackage(settings *helm_env.EnvSettings, packageName string) ([]*search.Result, error) {
 	err := ensureIndex(settings)
 	if err != nil {
 		return nil, err
 	}
 
-	var res []*search.Result
+	allPackages := index.All()
 
-	res, err = index.Search(packageName, 1, false)
-	if err != nil {
-		return nil, err
+	results := []*search.Result{}
+	for _, p := range allPackages {
+		if p.Chart.GetName() == packageName {
+			results = append(results, p)
+		}
 	}
-	if len(res) > 1 {
-		log.Warn("More than one package found! Returning the first element.")
-	} else if len(res) == 0 {
+
+	if len(results) == 0 {
 		log.Warn("Package not found!")
 		return nil, nil
 	}
-
-	return res[0], err
+	SortByRevision(results)
+	return results, err
 }
 
 func applyConstraint(res []*search.Result, version string) ([]*search.Result, error) {
