@@ -9,12 +9,12 @@
 <body>
   <div>
     {{ range .Results }}
-    <div>
-      <a href="/packages/{{ .Chart.Name }}" target="_blank">
-        <h3>{{ .Chart.Name }}</h3>
-      </a>
-      <p>{{ .Chart.Description }}</p>
-    </div>
+      <div>
+        <a href="/packages/{{ .Chart.Name }}" target="_blank">
+          <h3>{{ .Chart.Name }}</h3><span> {{ .Chart.Version }}
+        </a>
+        <p>{{ .Chart.Description }}</p>
+      </div>
     {{ end }}
   </div>
 </body>

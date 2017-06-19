@@ -79,6 +79,41 @@ func SearchCharts(settings *helm_env.EnvSettings, query string, version string) 
 	return data, err
 }
 
+func GetNewestVersion(packages []*search.Result) []*search.Result {
+	newestVersions := make(map[string]*search.Result)
+	for _, p := range packages {
+		chartName := p.Chart.GetName()
+		currChartVer := p.Chart.GetVersion()
+
+		if newestVersions[chartName] == nil || currChartVer > newestVersions[chartName].Chart.GetVersion() {
+			newestVersions[chartName] = p
+		}
+
+	}
+	newestVersionsArray := make([]*search.Result, len(newestVersions))
+	packageIdx := 0
+	for _, v := range newestVersions {
+		newestVersionsArray[packageIdx] = v
+		packageIdx++
+	}
+
+	return newestVersionsArray
+}
+
+func GroupPackages(packages []*search.Result) map[string][]*search.Result {
+	packageGroups := make(map[string][]*search.Result)
+	for _, res := range packages {
+		chartName := res.Chart.GetName()
+		packageGroups[chartName] = append(packageGroups[chartName], res)
+	}
+
+	for _, v := range packageGroups {
+		SortByRevision(v)
+	}
+
+	return packageGroups
+}
+
 func GetSinglePackage(settings *helm_env.EnvSettings, packageName string) (*search.Result, error) {
 	err := ensureIndex(settings)
 	if err != nil {
