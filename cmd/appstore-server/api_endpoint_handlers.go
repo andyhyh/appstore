@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	log "github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
 	"github.com/uninett/appstore/pkg/helmutil"
@@ -29,6 +30,7 @@ func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		packageName := chi.URLParam(req, "packageName")
+		log.Debug("Installing package: " + packageName)
 
 		chartSettings := new(helmutil.ChartSettings)
 		decoder := json.NewDecoder(req.Body)
