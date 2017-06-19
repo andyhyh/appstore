@@ -47,7 +47,7 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 		apiReqLogger := logger.GetApiRequestLogger(req)
 		packageName := chi.URLParam(req, "packageName")
 		if packageName == "" {
-			http.Error(w, http.StatusText(404), 404)
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
 		apiReqLogger.Debug("Installing package: " + packageName)
