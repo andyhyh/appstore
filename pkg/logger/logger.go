@@ -60,6 +60,15 @@ func extractFromReq(log *logrus.Logger, reqID string, user string, r *http.Reque
 	return entry
 }
 
+func GetApiRequestLogger(r *http.Request) *logrus.Entry {
+	request_id := middleware.GetReqID(r.Context())
+	apiRequestLogger := logrus.New()
+	apiRequestLogger.Formatter = &logrus.JSONFormatter{}
+	apiRequestLogger.Level = logrus.DebugLevel
+
+	return apiRequestLogger.WithFields(logrus.Fields{"reqID": request_id})
+}
+
 func logRequest(log *logrus.Logger, logEntry *logrus.Entry, w writerProxy, dt time.Duration) {
 	logEntry = logEntry.WithFields(logrus.Fields{
 		"status":        w.Status(),
