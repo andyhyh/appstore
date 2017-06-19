@@ -15,8 +15,6 @@ func (s *sorter) Len() int           { return len(s.list) }
 func (s *sorter) Less(i, j int) bool { return s.less(i, j) }
 func (s *sorter) Swap(i, j int)      { s.list[i], s.list[j] = s.list[j], s.list[i] }
 
-// SortByRevision returns the list of releases sorted by a
-// release's revision number (release.Version).
 func SortByRevision(list []*search.Result) {
 	s := &sorter{list: list}
 	s.less = func(i, j int) bool {
