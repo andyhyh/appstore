@@ -7,6 +7,7 @@ import (
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"github.com/uninett/appstore/pkg/helmutil"
+	"github.com/uninett/appstore/pkg/logger"
 	"html/template"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"net/http"
@@ -29,7 +30,7 @@ func main() {
 
 	baseRouter.Use(middleware.RequestID)
 	baseRouter.Use(middleware.RealIP)
-	baseRouter.Use(middleware.Logger)
+	baseRouter.Use(logger.Logger)
 	baseRouter.Use(middleware.Recoverer)
 	baseRouter.Use(middleware.CloseNotify)
 	baseRouter.Use(middleware.Timeout(60 * time.Second))
