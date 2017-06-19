@@ -47,7 +47,7 @@ func GetAllReleases(settings *helm_env.EnvSettings) ([]*release.Release, error) 
 	}
 
 	if len(res.Releases) == 0 {
-		return nil, nil
+		return make([]*release.Release, 0), nil
 	}
 
 	if res.Next != "" {
