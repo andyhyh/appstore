@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
 	"github.com/uninett/appstore/pkg/helmutil"
 	"github.com/uninett/appstore/pkg/install"
+	"github.com/uninett/appstore/pkg/logger"
 	"github.com/uninett/appstore/pkg/search"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"net/http"
@@ -30,19 +30,20 @@ func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 
 func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		apiReqLogger := logger.GetApiRequestLogger(req)
 		packageName := chi.URLParam(req, "packageName")
 		if packageName == "" {
 			http.Error(w, http.StatusText(404), 404)
 			return
 		}
-		log.Debug("Installing package: " + packageName)
+		apiReqLogger.Debug("Installing package: " + packageName)
 
 		chartSettings := new(helmutil.ChartSettings)
 		decoder := json.NewDecoder(req.Body)
 		err := decoder.Decode(&chartSettings)
 
 		if err != nil {
-			log.Debug(fmt.Sprintf("Error decoding the POSTed JSON: '%s'", req.Body))
+			apiReqLogger.Debug(fmt.Sprintf("Error decoding the POSTed JSON: '%s'", req.Body))
 			render.Status(req, http.StatusBadRequest)
 			render.JSON(w, req, "Invalid JSON!")
 			return
