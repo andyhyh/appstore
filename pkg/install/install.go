@@ -2,6 +2,7 @@ package install
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"github.com/uninett/appstore/pkg/debug"
 	"github.com/uninett/appstore/pkg/helmutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 
@@ -12,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"text/template"
 
@@ -212,6 +214,13 @@ func checkDependencies(ch *chart.Chart, reqs *chartutil.Requirements) error {
 }
 
 func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings) (*services.GetReleaseStatusResponse, error) {
+	defer debug.GetFunctionTiming(time.Now(),
+		"install.InstallChart returned",
+		log.Fields{
+			"chart_installed": chartName,
+		},
+	)
+
 	client := helmutil.InitHelmClient(settings)
 	namespace := ""
 
