@@ -227,7 +227,7 @@ func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, setti
 	// TODO: Handle TLS related things:
 	chartPath, err := locateChartPath(chartName, chartSettings.Version, false, "", settings)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	log.Debug(fmt.Sprintf("Installing %s using chart path: %s", chartName, chartPath))
 
@@ -237,7 +237,7 @@ func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, setti
 
 	rawVals, err := vals(chartSettings.Values)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// If template is specified, try to run the template.
@@ -253,7 +253,7 @@ func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, setti
 	// // Check chart requirements to make sure all dependencies are present in /charts
 	chartRequested, err := chartutil.Load(chartPath)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if req, err := chartutil.LoadRequirements(chartRequested); err == nil {
@@ -261,7 +261,7 @@ func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, setti
 		// As of Helm 2.4.0, this is treated as a stopping condition:
 		// https://github.com/kubernetes/helm/issues/2209
 		if err := checkDependencies(chartRequested, req); err != nil {
-			panic(err)
+			return nil, err
 		}
 	} else if err != chartutil.ErrRequirementsNotFound {
 		log.Warn("cannot load requirements: %v", err)
