@@ -18,7 +18,7 @@ func SetDebug(enableDebug bool) {
 
 func Logger(next http.Handler) http.Handler {
 	log := logrus.New()
-	log.Level = logrus.InfoLevel
+	log.Level = logrus.DebugLevel
 	if !debug {
 		log.Formatter = &logrus.JSONFormatter{}
 	}
@@ -82,5 +82,5 @@ func logRequest(log *logrus.Logger, logEntry *logrus.Entry, w middleware.WrapRes
 		"took_ns":       dt.Nanoseconds(),
 	})
 
-	logEntry.Info("Request completed")
+	logEntry.Debug("Request completed")
 }
