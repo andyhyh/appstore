@@ -286,7 +286,7 @@ func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, setti
 
 	rel := res.GetRelease()
 	if rel == nil {
-		return nil, fmt.Errorf("No release returned!")
+		return nil, fmt.Errorf("no release returned")
 	}
 
 	// Print the status like status command does
