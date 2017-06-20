@@ -16,7 +16,7 @@ import (
 func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := chi.URLParam(r, "searchQuery")
-		results, err := search.SearchCharts(settings, query, "")
+		results, err := search.FindCharts(settings, query, "")
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

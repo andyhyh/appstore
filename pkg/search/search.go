@@ -37,7 +37,7 @@ func GetAllCharts(settings *helm_env.EnvSettings) ([]*search.Result, error) {
 	return res, nil
 }
 
-func SearchCharts(settings *helm_env.EnvSettings, query string, version string) ([]*search.Result, error) {
+func FindCharts(settings *helm_env.EnvSettings, query string, version string) ([]*search.Result, error) {
 	t1 := time.Now()
 	err := ensureIndex(settings)
 	if err != nil {
