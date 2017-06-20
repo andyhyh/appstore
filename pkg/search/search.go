@@ -25,25 +25,7 @@ import (
 
 	"k8s.io/helm/cmd/helm/search"
 	helm_env "k8s.io/helm/pkg/helm/environment"
-	"k8s.io/helm/pkg/repo"
 )
-
-// searchMaxScore suggests that any score higher than this is not considered a match.
-const searchMaxScore = 25
-
-var index *search.Index
-
-func ensureIndex(settings *helm_env.EnvSettings) error {
-	if index == nil {
-		newIndex, err := buildIndex(settings)
-		index = newIndex
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func GetAllCharts(settings *helm_env.EnvSettings) ([]*search.Result, error) {
 	err := ensureIndex(settings)
@@ -90,47 +72,6 @@ func SearchCharts(settings *helm_env.EnvSettings, query string, version string) 
 	return data, err
 }
 
-func GetNewestVersion(packages []*search.Result) []*search.Result {
-	defer debug.GetFunctionTiming(time.Now(),
-		"search.GetNewestVersion returned",
-		log.Fields{
-			"num_packages": len(packages),
-		},
-	)
-	newestVersions := make(map[string]*search.Result)
-	for _, p := range packages {
-		chartName := p.Chart.GetName()
-		currChartVer := p.Chart.GetVersion()
-
-		if newestVersions[chartName] == nil || currChartVer > newestVersions[chartName].Chart.GetVersion() {
-			newestVersions[chartName] = p
-		}
-
-	}
-	newestVersionsArray := make([]*search.Result, len(newestVersions))
-	packageIdx := 0
-	for _, v := range newestVersions {
-		newestVersionsArray[packageIdx] = v
-		packageIdx++
-	}
-
-	return newestVersionsArray
-}
-
-func GroupPackages(packages []*search.Result) map[string][]*search.Result {
-	packageGroups := make(map[string][]*search.Result)
-	for _, res := range packages {
-		chartName := res.Chart.GetName()
-		packageGroups[chartName] = append(packageGroups[chartName], res)
-	}
-
-	for _, v := range packageGroups {
-		SortByRevision(v)
-	}
-
-	return packageGroups
-}
-
 func GetSinglePackage(settings *helm_env.EnvSettings, packageName string) ([]*search.Result, error) {
 	err := ensureIndex(settings)
 	if err != nil {
@@ -173,26 +114,4 @@ func applyConstraint(res []*search.Result, version string) ([]*search.Result, er
 
 	return data, nil
 
-}
-
-func buildIndex(settings *helm_env.EnvSettings) (*search.Index, error) {
-	// Load the repositories.yaml
-	rf, err := repo.LoadRepositoriesFile(settings.Home.RepositoryFile())
-	if err != nil {
-		return nil, err
-	}
-
-	i := search.NewIndex()
-	for _, re := range rf.Repositories {
-		n := re.Name
-		f := settings.Home.CacheIndex(n)
-		ind, err := repo.LoadIndexFile(f)
-		if err != nil {
-			log.Warn("WARNING: Repo %q is corrupt or missing. Try 'helm repo update'.", n)
-			continue
-		}
-
-		i.AddRepo(n, ind, true)
-	}
-	return i, nil
 }
