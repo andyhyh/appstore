@@ -11,3 +11,7 @@ deps:
 	glide install --strip-vendor
 	scripts/setup-apimachinery.sh
 	mkdir -p $(BINDIR)
+
+.PHONY: test
+test:
+	go test github.com/uninett/appstore/cmd/...
