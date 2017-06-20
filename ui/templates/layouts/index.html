@@ -1,12 +1,5 @@
-<!doctype html>
-
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Appstore</title>
-</head>
-
-<body>
+{{ define "title" }}all packages{{ end }}
+{{ define "content" }}
   <div>
     {{ range .Results }}
       <div>
@@ -17,5 +10,6 @@
       </div>
     {{ end }}
   </div>
-</body>
-</html>
+{{ end }}
+{{ define "scripts" }}
+{{ end }}
