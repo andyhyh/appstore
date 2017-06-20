@@ -1,5 +1,5 @@
-hash: cfef155cbf1a0af9e9fba809e1ebc2142843e60f74b1abb0146cdf551c1979bd
-updated: 2017-06-16T11:05:39.977518862+02:00
+hash: 8eae346c73a2e48881b1b47885659e12bdae5632884a228f3331f7b9b06a4988
+updated: 2017-06-20T09:43:16.333881794+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -35,7 +35,7 @@ imports:
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
 - name: github.com/docker/distribution
-  version: cd27f179f2c10c5d300e6d09025b538c475b0d51
+  version: 03efb43768979f4d2ea5187bef995656441829e5
   subpackages:
   - digest
   - reference
@@ -88,6 +88,8 @@ imports:
   version: ba18e35c5c1b36ef6334cad706eb681153d2d379
 - name: github.com/exponent-io/jsonpath
   version: d6023ce2651d8eafb5c75bb0c7167536102ec9f5
+- name: github.com/facebookgo/atomicfile
+  version: 2de1f203e7d5e386a6833233882782932729f27e
 - name: github.com/facebookgo/symwalk
   version: 42004b9f322246749dd73ad71008b1f3160c0052
 - name: github.com/ghodss/yaml
@@ -148,7 +150,7 @@ imports:
   - jlexer
   - jwriter
 - name: github.com/Masterminds/semver
-  version: ""
+  version: 3f0ab6d4ab4bed1c61caf056b63a6e62190c7801
 - name: github.com/Masterminds/sprig
   version: 9526be0327b26ad31aa70296a7b10704883976d5
 - name: github.com/mitchellh/go-wordwrap
@@ -418,7 +420,7 @@ imports:
   - util/integer
   - util/jsonpath
 - name: k8s.io/helm
-  version: 82d8e9498d96535cc6787a6a9194a76161d29b4c
+  version: 012cb0ac1a1b2f888144ef5a67b8dab6c2d45be6
   subpackages:
   - cmd/helm/search
   - pkg/chartutil
@@ -446,7 +448,7 @@ imports:
   - pkg/urlutil
   - pkg/version
 - name: k8s.io/kubernetes
-  version: b90e25a03b263752154c68fc3c09ef9921cf1dae
+  version: 7c3906a4eccd5a7cad245de0bd65337927a60bef
   subpackages:
   - federation/apis/federation
   - federation/apis/federation/install
@@ -579,6 +581,8 @@ imports:
   - pkg/version
 - name: vbom.ml/util
   version: db5cfe13f5cc80a4990d98e2e1b0707a4d1a5394
+  repo: https://github.com/fvbommel/util.git
+  vcs: git
   subpackages:
   - sortorder
 testImports: []
