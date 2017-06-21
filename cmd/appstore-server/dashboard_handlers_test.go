@@ -3,7 +3,6 @@ package main
 import (
 	"html/template"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
@@ -27,17 +26,10 @@ func TestTemplateProcessing(t *testing.T) {
 func TestDashboardPackageIndexHandler(t *testing.T) {
 	templates := initTemplates(t)
 
-	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	resp, body := testHandler(t, makePackageIndexHandler(mockSettings, templates), "GET", "/", nil)
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(makePackageIndexHandler(mockSettings, templates))
-	handler.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
+	if status := resp.StatusCode; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v (%s) want %v",
-			status, rr.Body.String(), http.StatusOK)
+			status, body.String(), http.StatusOK)
 	}
 }

@@ -3,29 +3,20 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 )
 
 func TestHealthzHandler(t *testing.T) {
-	req, err := http.NewRequest("GET", "/health", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	resp, body := testHandler(t, http.HandlerFunc(healthzHandler), "GET", "/health", nil)
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(healthzHandler)
-	handler.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
+	if status := resp.StatusCode; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
 
 	var returnedHi HealthInfo
-	requestBody := rr.Body
-	err = json.NewDecoder(requestBody).Decode(&returnedHi)
+	err := json.NewDecoder(body).Decode(&returnedHi)
 	if err != nil {
 		t.Errorf("handler returned invalid JSON!")
 	}
