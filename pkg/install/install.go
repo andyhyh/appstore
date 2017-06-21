@@ -1,7 +1,7 @@
 package install
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/uninett/appstore/pkg/debug"
 	"github.com/uninett/appstore/pkg/helmutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
@@ -117,7 +117,7 @@ func vals(valueFiles []string) ([]byte, error) {
 // - URL
 //
 // If 'verify' is true, this will attempt to also verify the chart.
-func locateChartPath(name, version string, verify bool, keyring string, settings *helm_env.EnvSettings) (string, error) {
+func locateChartPath(name, version string, verify bool, keyring string, settings *helm_env.EnvSettings, logger *logrus.Entry) (string, error) {
 	name = "stable/" + strings.TrimSpace(name)
 	version = strings.TrimSpace(version)
 	if fi, err := os.Stat(name); err == nil {
@@ -160,7 +160,7 @@ func locateChartPath(name, version string, verify bool, keyring string, settings
 		if err != nil {
 			return filename, err
 		}
-		log.Debug(fmt.Sprintf("Fetched %s to %s\n", name, filename))
+		logger.Debug(fmt.Sprintf("Fetched %s to %s\n", name, filename))
 		return lname, nil
 	} else if settings.Debug {
 		return filename, err
@@ -213,23 +213,24 @@ func checkDependencies(ch *chart.Chart, reqs *chartutil.Requirements) error {
 	return nil
 }
 
-func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings) (*services.GetReleaseStatusResponse, error) {
+func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings, logger *logrus.Entry) (*services.GetReleaseStatusResponse, error) {
 	defer debug.GetFunctionTiming(time.Now(),
 		"install.InstallChart returned",
-		log.Fields{
+		logrus.Fields{
 			"chart_installed": chartName,
 		},
+		logger,
 	)
 
 	client := helmutil.InitHelmClient(settings)
 	namespace := ""
 
 	// TODO: Handle TLS related things:
-	chartPath, err := locateChartPath(chartName, chartSettings.Version, false, "", settings)
+	chartPath, err := locateChartPath(chartName, chartSettings.Version, false, "", settings, logger)
 	if err != nil {
 		return nil, err
 	}
-	log.Debug(fmt.Sprintf("Installing %s using chart path: %s", chartName, chartPath))
+	logger.Debug(fmt.Sprintf("Installing %s using chart path: %s", chartName, chartPath))
 
 	if namespace == "" {
 		namespace = defaultNamespace()
@@ -264,7 +265,7 @@ func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, setti
 			return nil, err
 		}
 	} else if err != chartutil.ErrRequirementsNotFound {
-		log.Warn("cannot load requirements: %v", err)
+		logger.Warn("cannot load requirements: %v", err)
 		return nil, err
 	}
 

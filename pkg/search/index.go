@@ -17,7 +17,7 @@ limitations under the License.
 package search
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 
 	"k8s.io/helm/cmd/helm/search"
 	helm_env "k8s.io/helm/pkg/helm/environment"
@@ -29,9 +29,9 @@ const searchMaxScore = 25
 
 var index *search.Index
 
-func ensureIndex(settings *helm_env.EnvSettings) error {
+func ensureIndex(settings *helm_env.EnvSettings, logger *logrus.Entry) error {
 	if index == nil {
-		newIndex, err := buildIndex(settings)
+		newIndex, err := buildIndex(settings, logger)
 		index = newIndex
 		if err != nil {
 			return err
@@ -41,7 +41,7 @@ func ensureIndex(settings *helm_env.EnvSettings) error {
 	return nil
 }
 
-func buildIndex(settings *helm_env.EnvSettings) (*search.Index, error) {
+func buildIndex(settings *helm_env.EnvSettings, logger *logrus.Entry) (*search.Index, error) {
 	// Load the repositories.yaml
 	rf, err := repo.LoadRepositoriesFile(settings.Home.RepositoryFile())
 	if err != nil {
@@ -54,7 +54,7 @@ func buildIndex(settings *helm_env.EnvSettings) (*search.Index, error) {
 		f := settings.Home.CacheIndex(n)
 		ind, err := repo.LoadIndexFile(f)
 		if err != nil {
-			log.Warn("WARNING: Repo %q is corrupt or missing. Try 'helm repo update'.", n)
+			logger.Warn("WARNING: Repo %q is corrupt or missing. Try 'helm repo update'.", n)
 			continue
 		}
 

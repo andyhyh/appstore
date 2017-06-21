@@ -17,20 +17,10 @@ limitations under the License.
 package search
 
 import (
-	log "github.com/Sirupsen/logrus"
-	"github.com/uninett/appstore/pkg/debug"
-	"time"
-
 	"k8s.io/helm/cmd/helm/search"
 )
 
 func GetNewestVersion(packages []*search.Result) []*search.Result {
-	defer debug.GetFunctionTiming(time.Now(),
-		"search.GetNewestVersion returned",
-		log.Fields{
-			"num_packages": len(packages),
-		},
-	)
 	newestVersions := make(map[string]*search.Result)
 	for _, p := range packages {
 		chartName := p.Chart.GetName()

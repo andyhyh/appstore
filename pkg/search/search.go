@@ -19,7 +19,7 @@ package search
 import (
 	"fmt"
 	"github.com/Masterminds/semver"
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/uninett/appstore/pkg/debug"
 	"time"
 
@@ -27,8 +27,8 @@ import (
 	helm_env "k8s.io/helm/pkg/helm/environment"
 )
 
-func GetAllCharts(settings *helm_env.EnvSettings) ([]*search.Result, error) {
-	err := ensureIndex(settings)
+func GetAllCharts(settings *helm_env.EnvSettings, logger *logrus.Entry) ([]*search.Result, error) {
+	err := ensureIndex(settings, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -37,9 +37,9 @@ func GetAllCharts(settings *helm_env.EnvSettings) ([]*search.Result, error) {
 	return res, nil
 }
 
-func FindCharts(settings *helm_env.EnvSettings, query string, version string) ([]*search.Result, error) {
+func FindCharts(settings *helm_env.EnvSettings, query string, version string, logger *logrus.Entry) ([]*search.Result, error) {
 	t1 := time.Now()
-	err := ensureIndex(settings)
+	err := ensureIndex(settings, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -63,17 +63,18 @@ func FindCharts(settings *helm_env.EnvSettings, query string, version string) ([
 
 	defer debug.GetFunctionTiming(t1,
 		"search.SearchCharts returned",
-		log.Fields{
+		logrus.Fields{
 			"query":       query,
 			"num_results": len(data),
 		},
+		logger,
 	)
 
 	return data, err
 }
 
-func GetSinglePackage(settings *helm_env.EnvSettings, packageName string) ([]*search.Result, error) {
-	err := ensureIndex(settings)
+func GetSinglePackage(settings *helm_env.EnvSettings, packageName string, logger *logrus.Entry) ([]*search.Result, error) {
+	err := ensureIndex(settings, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +89,7 @@ func GetSinglePackage(settings *helm_env.EnvSettings, packageName string) ([]*se
 	}
 
 	if len(results) == 0 {
+		logger.Debug(fmt.Sprintf("package %s not found", packageName))
 		return nil, fmt.Errorf("package not found")
 	}
 	SortByRevision(results)

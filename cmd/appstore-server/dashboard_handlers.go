@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/pressly/chi"
+	"github.com/uninett/appstore/pkg/logger"
 	"github.com/uninett/appstore/pkg/search"
 	"github.com/uninett/appstore/pkg/status"
 	"html/template"
@@ -50,7 +51,8 @@ func renderTemplate(w http.ResponseWriter, templates map[string]*template.Templa
 
 func makePackageIndexHandler(settings *helm_env.EnvSettings, templates map[string]*template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		results, err := search.GetAllCharts(settings)
+		apiReqLogger := logger.MakeAPILogger(r)
+		results, err := search.GetAllCharts(settings, apiReqLogger)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -66,14 +68,15 @@ func makePackageIndexHandler(settings *helm_env.EnvSettings, templates map[strin
 }
 
 func makePackageDetailHandler(settings *helm_env.EnvSettings, templates map[string]*template.Template) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		packageName := chi.URLParam(req, "packageName")
+	return func(w http.ResponseWriter, r *http.Request) {
+		packageName := chi.URLParam(r, "packageName")
 		if packageName == "" {
 			http.Error(w, "Package not found!", http.StatusNotFound)
 			return
 		}
 
-		packageVersions, err := search.GetSinglePackage(settings, packageName)
+		apiReqLogger := logger.MakeAPILogger(r)
+		packageVersions, err := search.GetSinglePackage(settings, packageName, apiReqLogger)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -8,41 +8,33 @@ import (
 	"github.com/pressly/chi/middleware"
 )
 
-var debug = false
-
 const httpProtoMajor = 1
 
-func SetDebug(enableDebug bool) {
-	debug = enableDebug
-}
+func MakeRequestLoggerMiddleware(level logrus.Level, formatter logrus.Formatter) func(http.Handler) http.Handler {
+	loggerMiddleware := func(next http.Handler) http.Handler {
+		handler := func(w http.ResponseWriter, r *http.Request) {
+			entry := extractFromReq(r)
+			lw := middleware.NewWrapResponseWriter(w, httpProtoMajor)
 
-func Logger(next http.Handler) http.Handler {
-	log := logrus.New()
-	log.Level = logrus.DebugLevel
-	if !debug {
-		log.Formatter = &logrus.JSONFormatter{}
+			t1 := time.Now()
+			defer func() {
+				t2 := time.Now()
+				logRequest(entry, lw, t2.Sub(t1))
+			}()
+
+			next.ServeHTTP(lw, r)
+		}
+
+		return http.HandlerFunc(handler)
 	}
 
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		entry := extractFromReq(log, r)
-		lw := middleware.NewWrapResponseWriter(w, httpProtoMajor)
-
-		t1 := time.Now()
-		defer func() {
-			t2 := time.Now()
-			logRequest(log, entry, lw, t2.Sub(t1))
-		}()
-
-		next.ServeHTTP(lw, r)
-	}
-
-	return http.HandlerFunc(fn)
+	return loggerMiddleware
 }
 
-func extractFromReq(log *logrus.Logger, r *http.Request) *logrus.Entry {
+func extractFromReq(r *http.Request) *logrus.Entry {
 	user := "unknown"
 	reqID := middleware.GetReqID(r.Context())
-	entry := logrus.NewEntry(log).WithFields(logrus.Fields{
+	entry := logrus.WithFields(logrus.Fields{
 		"reqID":     reqID,
 		"method":    r.Method,
 		"host":      r.Host,
@@ -63,18 +55,13 @@ func extractFromReq(log *logrus.Logger, r *http.Request) *logrus.Entry {
 	return entry
 }
 
-func GetApiRequestLogger(r *http.Request) *logrus.Entry {
-	request_id := middleware.GetReqID(r.Context())
-	apiRequestLogger := logrus.New()
-	if !debug {
-		apiRequestLogger.Formatter = &logrus.JSONFormatter{}
-	}
-	apiRequestLogger.Level = logrus.DebugLevel
+func MakeAPILogger(r *http.Request) *logrus.Entry {
+	reqID := middleware.GetReqID(r.Context())
 
-	return apiRequestLogger.WithFields(logrus.Fields{"reqID": request_id})
+	return logrus.WithFields(logrus.Fields{"reqID": reqID, "namespace": "api"})
 }
 
-func logRequest(log *logrus.Logger, logEntry *logrus.Entry, w middleware.WrapResponseWriter, dt time.Duration) {
+func logRequest(logEntry *logrus.Entry, w middleware.WrapResponseWriter, dt time.Duration) {
 	logEntry = logEntry.WithFields(logrus.Fields{
 		"status":        w.Status(),
 		"text_status":   http.StatusText(w.Status()),

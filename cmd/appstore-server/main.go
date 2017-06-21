@@ -26,11 +26,10 @@ func main() {
 	settings := helmutil.InitHelmSettings(*debug, *tillerHost)
 
 	baseRouter := chi.NewRouter()
-	logger.SetDebug(settings.Debug)
 
 	baseRouter.Use(middleware.RequestID)
 	baseRouter.Use(middleware.RealIP)
-	baseRouter.Use(logger.Logger)
+	baseRouter.Use(logger.MakeRequestLoggerMiddleware(log.DebugLevel, &log.JSONFormatter{}))
 	baseRouter.Use(middleware.Recoverer)
 	baseRouter.Use(middleware.CloseNotify)
 	baseRouter.Use(middleware.Timeout(60 * time.Second))

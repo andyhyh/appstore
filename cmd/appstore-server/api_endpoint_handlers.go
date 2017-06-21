@@ -15,8 +15,9 @@ import (
 
 func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logger := logger.MakeAPILogger(r)
 		query := chi.URLParam(r, "searchQuery")
-		results, err := search.FindCharts(settings, query, "")
+		results, err := search.FindCharts(settings, query, "", logger)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -29,7 +30,8 @@ func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFu
 
 func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		results, err := search.GetAllCharts(settings)
+		apiReqLogger := logger.MakeAPILogger(r)
+		results, err := search.GetAllCharts(settings, apiReqLogger)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -43,9 +45,9 @@ func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 }
 
 func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		apiReqLogger := logger.GetApiRequestLogger(req)
-		packageName := chi.URLParam(req, "packageName")
+	return func(w http.ResponseWriter, r *http.Request) {
+		apiReqLogger := logger.MakeAPILogger(r)
+		packageName := chi.URLParam(r, "packageName")
 		if packageName == "" {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
@@ -53,23 +55,23 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 		apiReqLogger.Debug("Installing package: " + packageName)
 
 		chartSettings := new(helmutil.ChartSettings)
-		decoder := json.NewDecoder(req.Body)
+		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&chartSettings)
 
 		if err != nil {
-			apiReqLogger.Debug(fmt.Sprintf("Error decoding the POSTed JSON: '%s'", req.Body))
-			render.Status(req, http.StatusBadRequest)
-			render.JSON(w, req, "Invalid JSON!")
+			apiReqLogger.Debug(fmt.Sprintf("Error decoding the POSTed JSON: '%s'", r.Body))
+			render.Status(r, http.StatusBadRequest)
+			render.JSON(w, r, "Invalid JSON!")
 			return
 		}
 
-		res, err := install.InstallChart(packageName, chartSettings, settings)
+		res, err := install.InstallChart(packageName, chartSettings, settings, apiReqLogger)
 
 		if err == nil {
-			render.JSON(w, req, res)
+			render.JSON(w, r, res)
 		} else {
-			render.Status(req, http.StatusInternalServerError)
-			render.JSON(w, req, err)
+			render.Status(r, http.StatusInternalServerError)
+			render.JSON(w, r, err)
 		}
 	}
 }
