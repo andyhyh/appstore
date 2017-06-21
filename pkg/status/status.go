@@ -18,7 +18,7 @@ package status
 
 import (
 	"fmt"
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/uninett/appstore/pkg/helmutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 
@@ -27,7 +27,7 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/services"
 )
 
-func GetAllReleases(settings *helm_env.EnvSettings) ([]*release.Release, error) {
+func GetAllReleases(settings *helm_env.EnvSettings, logger *logrus.Entry) ([]*release.Release, error) {
 	client := helmutil.InitHelmClient(settings)
 	sortBy := services.ListSort_NAME
 	sortOrder := services.ListSort_ASC
@@ -51,7 +51,7 @@ func GetAllReleases(settings *helm_env.EnvSettings) ([]*release.Release, error) 
 	}
 
 	if res.Next != "" {
-		log.Debug("\tnext: %s\n", res.Next)
+		logger.Debug("\tnext: %s\n", res.Next)
 	}
 
 	return res.Releases, nil

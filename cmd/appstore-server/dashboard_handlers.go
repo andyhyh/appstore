@@ -93,7 +93,8 @@ func makePackageDetailHandler(settings *helm_env.EnvSettings, templates map[stri
 
 func makeReleaseOverviewHandle(settings *helm_env.EnvSettings, templates map[string]*template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		res, err := status.GetAllReleases(settings)
+		apiReqLogger := logger.MakeAPILogger(r)
+		res, err := status.GetAllReleases(settings, apiReqLogger)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
