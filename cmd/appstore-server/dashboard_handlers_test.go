@@ -1,27 +1,31 @@
 package main
 
 import (
+	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func TestTemplateProcessing(t *testing.T) {
+func initTemplates(t *testing.T) map[string]*template.Template {
 	templates, err := ProcessTemplates("../../ui/templates/")
-	if templates == nil {
-		t.Fatal("could not create templates!")
-	}
-
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	if templates == nil {
+		t.Fatal("could not create templates")
+	}
+
+	return templates
+}
+
+func TestTemplateProcessing(t *testing.T) {
+	_ = initTemplates(t)
 }
 
 func TestDashboardPackageIndexHandler(t *testing.T) {
-	templates, err := ProcessTemplates("../../ui/templates/")
-	if templates == nil {
-		t.Fatal("could not create templates!")
-	}
+	templates := initTemplates(t)
 
 	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
