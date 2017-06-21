@@ -29,7 +29,7 @@ func main() {
 
 	baseRouter.Use(middleware.RequestID)
 	baseRouter.Use(middleware.RealIP)
-	baseRouter.Use(logger.MakeRequestLoggerMiddleware(log.DebugLevel, &log.JSONFormatter{}))
+	baseRouter.Use(logger.RequestLogger)
 	baseRouter.Use(middleware.Recoverer)
 	baseRouter.Use(middleware.CloseNotify)
 	baseRouter.Use(middleware.Timeout(60 * time.Second))

@@ -10,25 +10,21 @@ import (
 
 const httpProtoMajor = 1
 
-func MakeRequestLoggerMiddleware(level logrus.Level, formatter logrus.Formatter) func(http.Handler) http.Handler {
-	loggerMiddleware := func(next http.Handler) http.Handler {
-		handler := func(w http.ResponseWriter, r *http.Request) {
-			entry := extractFromReq(r)
-			lw := middleware.NewWrapResponseWriter(w, httpProtoMajor)
+func RequestLogger(next http.Handler) http.Handler {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		entry := extractFromReq(r)
+		lw := middleware.NewWrapResponseWriter(w, httpProtoMajor)
 
-			t1 := time.Now()
-			defer func() {
-				t2 := time.Now()
-				logRequest(entry, lw, t2.Sub(t1))
-			}()
+		t1 := time.Now()
+		defer func() {
+			t2 := time.Now()
+			logRequest(entry, lw, t2.Sub(t1))
+		}()
 
-			next.ServeHTTP(lw, r)
-		}
-
-		return http.HandlerFunc(handler)
+		next.ServeHTTP(lw, r)
 	}
 
-	return loggerMiddleware
+	return http.HandlerFunc(handler)
 }
 
 func extractFromReq(r *http.Request) *logrus.Entry {
