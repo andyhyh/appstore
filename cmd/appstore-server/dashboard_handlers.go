@@ -1,7 +1,6 @@
 package main
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 	"github.com/uninett/appstore/pkg/search"
 	"github.com/uninett/appstore/pkg/status"
@@ -14,15 +13,15 @@ import (
 	"path/filepath"
 )
 
-func ProcessTemplates(templatesDir string) map[string]*template.Template {
+func ProcessTemplates(templatesDir string) (map[string]*template.Template, error) {
 	layouts, err := filepath.Glob(path.Join(templatesDir, "layouts/*.html"))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	bases, err := filepath.Glob(path.Join(templatesDir, "bases/*.html"))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	processedTemplates := make(map[string]*template.Template)
@@ -32,7 +31,7 @@ func ProcessTemplates(templatesDir string) map[string]*template.Template {
 		processedTemplates[filepath.Base(layout)] = tmpl
 	}
 
-	return processedTemplates
+	return processedTemplates, nil
 }
 
 func renderTemplate(w http.ResponseWriter, templates map[string]*template.Template, tmplName string, data interface{}) {

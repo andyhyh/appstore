@@ -36,7 +36,10 @@ func main() {
 	baseRouter.Use(middleware.Timeout(60 * time.Second))
 
 	baseRouter.Mount("/api", createAPIRouter(settings))
-	templates := ProcessTemplates("ui/templates/")
+	templates, err := ProcessTemplates("ui/templates/")
+	if err != nil {
+		log.Fatal(err)
+	}
 	baseRouter.Mount("/", createDashboardRouter(settings, templates))
 	baseRouter.Get("/healthz", healthzHandler)
 
