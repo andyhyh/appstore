@@ -16,7 +16,7 @@ import (
 
 var startTime time.Time
 
-const version string = "none"
+const version string = "v1"
 
 func main() {
 	debug := flag.Bool("debug", false, "Enable debug about")
