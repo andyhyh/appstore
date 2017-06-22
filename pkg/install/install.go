@@ -166,7 +166,7 @@ func locateChartPath(name, version string, verify bool, keyring string, settings
 		if err != nil {
 			return filename, err
 		}
-		logger.Debug(fmt.Sprintf("Fetched %s to %s\n", name, filename))
+		logger.Debugf("Fetched %s to %s\n", name, filename)
 		return lname, nil
 	} else if settings.Debug {
 		return filename, err
@@ -236,7 +236,7 @@ func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, setti
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug(fmt.Sprintf("Installing %s using chart path: %s", chartName, chartPath))
+	logger.Debugf("Installing %s using chart path: %s", chartName, chartPath)
 
 	if namespace == "" {
 		namespace = defaultNamespace()

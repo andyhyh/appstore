@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
 	"github.com/uninett/appstore/pkg/helmutil"
@@ -59,7 +58,7 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 		err := decoder.Decode(&chartSettings)
 
 		if err != nil {
-			apiReqLogger.Debug(fmt.Sprintf("Error decoding the POSTed JSON: '%s, %s'", r.Body, err.Error()))
+			apiReqLogger.Debugf("Error decoding the POSTed JSON: '%s, %s'", r.Body, err.Error())
 			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, "Invalid JSON!")
 			return
