@@ -2,6 +2,7 @@ package install
 
 import (
 	"github.com/Sirupsen/logrus"
+	"github.com/uninett/appstore/pkg/dataporten"
 	"github.com/uninett/appstore/pkg/debug"
 	"github.com/uninett/appstore/pkg/helmutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
@@ -28,6 +29,11 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/services"
 )
+
+type InstallResult struct {
+	*services.GetReleaseStatusResponse
+	DataportenRegResult *dataporten.RegisterClientResult
+}
 
 type valueFiles []string
 
@@ -213,7 +219,7 @@ func checkDependencies(ch *chart.Chart, reqs *chartutil.Requirements) error {
 	return nil
 }
 
-func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings, logger *logrus.Entry) (*services.GetReleaseStatusResponse, error) {
+func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings, logger *logrus.Entry) (*InstallResult, error) {
 	defer debug.GetFunctionTiming(time.Now(),
 		"install.InstallChart returned",
 		logrus.Fields{
@@ -269,6 +275,14 @@ func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, setti
 		return nil, err
 	}
 
+	var regRes *dataporten.RegisterClientResult
+	if chartSettings.DataportenClientSettings.Name != "" {
+		regRes, err = dataporten.CreateClient(chartSettings.DataportenClientSettings, os.Getenv("TOKEN"), logger)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	name := ""
 	dryRun := false
 	res, err := client.InstallReleaseFromChart(
@@ -296,5 +310,5 @@ func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, setti
 		return nil, err
 	}
 
-	return status, nil
+	return &InstallResult{status, regRes}, nil
 }

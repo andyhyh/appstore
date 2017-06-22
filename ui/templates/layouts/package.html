@@ -14,6 +14,9 @@
            <option value="{{ .Chart.Version }}">{{ .Chart.Version }}</option>
            {{ end }}
         </select> 
+        </br>
+        <input type="text" name="dataportenClientName"></br>
+        <input type="text" name="dataportenHost"></br>
         <input type="submit" name="submit" value="Install">
         <p id="installStatus"></p>
         <p id="releaseName"></p>
@@ -28,9 +31,11 @@
       var form = document.getElementById("installationForm");
       var versionsSelector = form.elements["version"];
       var version = versionsSelector.options[versionsSelector.selectedIndex].value
+      var dpName = form.elements["dataportenClientName"].value;
       var xhr = new XMLHttpRequest();
       var data = JSON.stringify({
         "version": version,
+        "dataporten_settings": {"name": dpName}
       }); 
       xhr.open('POST', "/api/v1/packages/install/" + packageName);
       xhr.setRequestHeader('Content-Type', 'application/json');
@@ -45,6 +50,7 @@
           statusTextDetails.innerHTML = details;
           releaseName.innerHTML = "Release name: " + res.name;
         } else {
+          var statusText = document.getElementById('installStatus');
           statusText.innerHTML = "The package was not successfully installed!";
         }
       };
