@@ -25,7 +25,7 @@ type RegisterClientResult struct {
 	Owner        string `json:"owner"`
 }
 
-var dataportenURL = "https://clientadmin.dataporten-api.no/clients/"
+const dataportenURL string = "https://clientadmin.dataporten-api.no/clients/"
 
 func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*RegisterClientResult, error) {
 	if cs.ClientSecret == "" {
