@@ -26,7 +26,7 @@ var dataportenURL = "https://clientadmin.dataporten-api.no/clients/"
 
 func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*RegisterClientResult, error) {
 	b := new(bytes.Buffer)
-	err := json.NewEncoder(b).Encode(ClientSettings{cs.Name, cs.ScopesRequested, cs.RedirectURI, cs.Description})
+	err := json.NewEncoder(b).Encode(cs)
 	if err != nil {
 		return nil, err
 	}
