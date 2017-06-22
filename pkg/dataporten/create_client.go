@@ -67,12 +67,3 @@ func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*Regis
 	}
 	return regRes, nil
 }
-
-// func main() {
-// name := "paal-test"
-// scopes := []string{"profile"}
-// redirectURI := []string{"http://example.org"}
-// token := "2bb79898-1798-4118-924a-12c7692c8561"
-// describ := "appstore"
-// CreateDataportenClient(name, scopes, redirectURI, token, describ)
-// }
