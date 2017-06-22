@@ -3,6 +3,7 @@ package dataporten
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/Sirupsen/logrus"
 	"net/http"
 	"time"
@@ -42,6 +43,11 @@ func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*Regis
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.StatusCode == http.StatusBadRequest {
+		return nil, fmt.Errorf(resp.Status)
+	}
+
 	defer resp.Body.Close()
 
 	regRes := new(RegisterClientResult)
