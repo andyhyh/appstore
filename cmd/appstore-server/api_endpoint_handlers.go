@@ -75,8 +75,16 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 		}
 
 		if chartSettings.DataportenClientSettings.Name != "" {
-			regRes, err := dataporten.CreateClient(chartSettings.DataportenClientSettings, os.Getenv("TOKEN"), apiReqLogger)
+			regResp, err := dataporten.CreateClient(chartSettings.DataportenClientSettings, os.Getenv("TOKEN"), apiReqLogger)
+
+			if regResp.StatusCode == http.StatusBadRequest {
+				http.Error(w, regResp.Status, http.StatusBadRequest)
+				return
+			}
+
+			regRes, err := dataporten.ParseRegistrationResult(regResp.Body, apiReqLogger)
 			if err != nil {
+				apiReqLogger.Fatal("Dataporten returned invalid JSON " + err.Error())
 				render.Status(r, http.StatusInternalServerError)
 				render.JSON(w, r, err)
 				return

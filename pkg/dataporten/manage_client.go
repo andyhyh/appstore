@@ -3,7 +3,6 @@ package dataporten
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/m4rw3r/uuid"
 	"io"
@@ -47,7 +46,20 @@ func executeRequest(req *http.Request) (*http.Response, error) {
 	return client.Do(req)
 }
 
-func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*RegisterClientResult, error) {
+func ParseRegistrationResult(respBody io.ReadCloser, logger *logrus.Entry) (*RegisterClientResult, error) {
+	regRes := new(RegisterClientResult)
+	defer respBody.Close()
+	err := json.NewDecoder(respBody).Decode(&regRes)
+
+	if err != nil {
+		logger.Fatal("Dataporten returned invalid JSON " + err.Error())
+		return nil, err
+	}
+
+	return regRes, nil
+}
+
+func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*http.Response, error) {
 	if cs.ClientSecret == "" {
 		clientSecret, err := uuid.V4()
 		if err != nil {
@@ -69,22 +81,7 @@ func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*Regis
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := executeRequest(req)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode == http.StatusBadRequest {
-		return nil, fmt.Errorf(resp.Status)
-	}
-	defer resp.Body.Close()
-
-	regRes := new(RegisterClientResult)
-	err = json.NewDecoder(resp.Body).Decode(&regRes)
-	if err != nil {
-		return nil, err
-	}
-	return regRes, nil
+	return executeRequest(req)
 }
 
 func DeleteClient(clientId string, token string, logger *logrus.Entry) (*http.Response, error) {
