@@ -59,7 +59,7 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 		err := decoder.Decode(&chartSettings)
 
 		if err != nil {
-			apiReqLogger.Debug(fmt.Sprintf("Error decoding the POSTed JSON: '%s'", r.Body))
+			apiReqLogger.Debug(fmt.Sprintf("Error decoding the POSTed JSON: '%s, %s'", r.Body, err.Error()))
 			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, "Invalid JSON!")
 			return
