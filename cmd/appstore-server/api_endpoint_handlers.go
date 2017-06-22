@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
 	"github.com/uninett/appstore/pkg/dataporten"
@@ -55,7 +56,7 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 		apiReqLogger := logger.MakeAPILogger(r)
 		packageName := chi.URLParam(r, "packageName")
 		if packageName == "" {
-			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			writeErrorJson(w, r, fmt.Errorf("package not found"), http.StatusNotFound)
 			return
 		}
 		apiReqLogger.Debug("Installing package: " + packageName)
@@ -66,8 +67,7 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 
 		if err != nil {
 			apiReqLogger.Debugf("Error decoding the POSTed JSON: '%s, %s'", r.Body, err.Error())
-			render.Status(r, http.StatusBadRequest)
-			render.JSON(w, r, "Invalid JSON!")
+			writeErrorJson(w, r, fmt.Errorf("invalid json"), http.StatusBadRequest)
 			return
 		}
 
@@ -82,7 +82,7 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 			regResp, err := dataporten.CreateClient(chartSettings.DataportenClientSettings, os.Getenv("TOKEN"), apiReqLogger)
 
 			if regResp.StatusCode == http.StatusBadRequest {
-				http.Error(w, regResp.Status, http.StatusBadRequest)
+				writeErrorJson(w, r, fmt.Errorf(regResp.Status), http.StatusBadRequest)
 				return
 			}
 
