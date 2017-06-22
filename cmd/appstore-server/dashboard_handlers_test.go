@@ -26,10 +26,6 @@ func TestTemplateProcessing(t *testing.T) {
 func TestDashboardPackageIndexHandler(t *testing.T) {
 	templates := initTemplates(t)
 
-	resp, body := testHandler(t, makePackageIndexHandler(mockSettings, templates), "GET", "/", nil)
-
-	if status := resp.StatusCode; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v (%s) want %v",
-			status, body.String(), http.StatusOK)
-	}
+	resp, _ := testHandler(t, makePackageIndexHandler(mockSettings, templates), "GET", "/", nil)
+	checkStatus(resp, http.StatusOK, t)
 }

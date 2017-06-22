@@ -10,10 +10,7 @@ import (
 func TestHealthzHandler(t *testing.T) {
 	resp, body := testHandler(t, http.HandlerFunc(healthzHandler), "GET", "/health", nil)
 
-	if status := resp.StatusCode; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
+	checkStatus(resp, http.StatusOK, t)
 
 	var returnedHi HealthInfo
 	err := json.NewDecoder(body).Decode(&returnedHi)
