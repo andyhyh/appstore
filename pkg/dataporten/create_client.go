@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/m4rw3r/uuid"
+	"io"
 	"net/http"
 	"time"
 )
@@ -27,8 +28,8 @@ type RegisterClientResult struct {
 
 const dataportenURL string = "https://clientadmin.dataporten-api.no/clients/"
 
-func initAuthorizedRequest(method string, url string, body *bytes.Buffer, token string) (*http.Request, error) {
-	req, err := http.NewRequest("POST", url, body)
+func initAuthorizedRequest(method string, url string, body io.Reader, token string) (*http.Request, error) {
+	req, err := http.NewRequest(method, url, body)
 
 	if err != nil {
 		return nil, err
