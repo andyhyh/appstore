@@ -12,7 +12,8 @@ import (
 	"github.com/uninett/appstore/pkg/logger"
 	"io"
 
-	"github.com/uninett/appstore/pkg/search"
+	app_search "github.com/uninett/appstore/pkg/search"
+	"k8s.io/helm/cmd/helm/search"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"net/http"
 	"os"
@@ -26,12 +27,13 @@ func returnJSON(w http.ResponseWriter, r *http.Request, res interface{}, err err
 	render.Status(r, status)
 	if err != nil {
 		render.JSON(w, r, ErrorJson{err.Error()})
+	} else {
+		render.JSON(w, r, res)
 	}
-	render.JSON(w, r, res)
 }
 
 func chartSearchHandler(query string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
-	results, err := search.FindCharts(settings, query, "", logger)
+	results, err := app_search.FindCharts(settings, query, "", logger)
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
 	}
@@ -49,15 +51,15 @@ func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFu
 	}
 }
 
-func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
-	results, err := search.GetAllCharts(settings, logger)
+func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, []*search.Result) {
+	results, err := app_search.GetAllCharts(settings, logger)
 
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
 	}
 
-	newestPackages := search.GetNewestVersion(results)
-	search.SortByName(newestPackages)
+	newestPackages := app_search.GetNewestVersion(results)
+	app_search.SortByName(newestPackages)
 
 	return http.StatusOK, nil, newestPackages
 }

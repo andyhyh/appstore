@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 	"github.com/uninett/appstore/pkg/logger"
 	"github.com/uninett/appstore/pkg/search"
@@ -13,6 +15,14 @@ import (
 	"path"
 	"path/filepath"
 )
+
+func returnHTML(w http.ResponseWriter, template string, templates map[string]*template.Template, res interface{}, err error, status int) {
+	if err != nil {
+		http.Error(w, err.Error(), status)
+	} else {
+		renderTemplate(w, templates, template, res)
+	}
+}
 
 func ProcessTemplates(templatesDir string) (map[string]*template.Template, error) {
 	layouts, err := filepath.Glob(path.Join(templatesDir, "layouts/*.html"))
@@ -52,55 +62,57 @@ func renderTemplate(w http.ResponseWriter, templates map[string]*template.Templa
 func makePackageIndexHandler(settings *helm_env.EnvSettings, templates map[string]*template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
-		results, err := search.GetAllCharts(settings, apiReqLogger)
 
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		newestPackages := search.GetNewestVersion(results)
-		search.SortByName(newestPackages)
-		renderTemplate(w, templates, "index.html", struct {
+		status, err, newestPackages := allPackagesHandler(settings, apiReqLogger)
+		formattedRes := struct {
 			Results []*helm_search.Result
-		}{newestPackages})
+		}{newestPackages}
+		returnHTML(w, "index.html", templates, formattedRes, err, status)
 	}
+}
+
+func packageDetailHandler(packageName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+	if packageName == "" {
+		return http.StatusBadRequest, fmt.Errorf("no package specified"), nil
+	}
+
+	packageVersions, err := search.GetSinglePackage(settings, packageName, logger)
+
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
+
+	newestVersion, otherVersions := packageVersions[0], packageVersions[1:len(packageVersions)]
+	return http.StatusOK, nil, struct {
+		NewestVersion *helm_search.Result
+		OtherVersions []*helm_search.Result
+	}{newestVersion, otherVersions}
 }
 
 func makePackageDetailHandler(settings *helm_env.EnvSettings, templates map[string]*template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		packageName := chi.URLParam(r, "packageName")
-		if packageName == "" {
-			http.Error(w, "Package not found!", http.StatusNotFound)
-			return
-		}
-
 		apiReqLogger := logger.MakeAPILogger(r)
-		packageVersions, err := search.GetSinglePackage(settings, packageName, apiReqLogger)
+		status, err, res := packageDetailHandler(packageName, settings, apiReqLogger)
 
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		newestVersion, otherVersions := packageVersions[0], packageVersions[1:len(packageVersions)]
-		renderTemplate(w, templates, "package.html", struct {
-			NewestVersion *helm_search.Result
-			OtherVersions []*helm_search.Result
-		}{newestVersion, otherVersions})
+		returnHTML(w, "package.html", templates, res, err, status)
 	}
+}
+
+func releaseOverviewHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, []*release.Release) {
+	res, err := status.GetAllReleases(settings, logger)
+
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
+	return http.StatusOK, nil, res
 }
 
 func makeReleaseOverviewHandle(settings *helm_env.EnvSettings, templates map[string]*template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
-		res, err := status.GetAllReleases(settings, apiReqLogger)
+		status, err, res := releaseOverviewHandler(settings, apiReqLogger)
 
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		renderTemplate(w, templates, "releases.html", struct{ Results []*release.Release }{res})
+		returnHTML(w, "releases.html", templates, struct{ Results []*release.Release }{res}, err, status)
 	}
 }
