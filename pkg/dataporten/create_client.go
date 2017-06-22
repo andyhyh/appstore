@@ -27,6 +27,25 @@ type RegisterClientResult struct {
 
 const dataportenURL string = "https://clientadmin.dataporten-api.no/clients/"
 
+func initAuthorizedRequest(method string, url string, body *bytes.Buffer, token string) (*http.Request, error) {
+	req, err := http.NewRequest("POST", url, body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
+	return req, nil
+}
+
+func executeRequest(req *http.Request) (*http.Response, error) {
+	client := &http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	return client.Do(req)
+}
+
 func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*RegisterClientResult, error) {
 	if cs.ClientSecret == "" {
 		clientSecret, err := uuid.V4()
@@ -43,13 +62,13 @@ func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*Regis
 	}
 	logger.Debug("Preparing to register new dataporten client with settings: " + b.String())
 
-	req, err := http.NewRequest("POST", dataportenURL, b)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token)
-	client := &http.Client{
-		Timeout: time.Second * 10,
+	req, err := initAuthorizedRequest("POST", dataportenURL, b, token)
+	if err != nil {
+		return nil, err
 	}
-	resp, err := client.Do(req)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := executeRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +76,6 @@ func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*Regis
 	if resp.StatusCode == http.StatusBadRequest {
 		return nil, fmt.Errorf(resp.Status)
 	}
-
 	defer resp.Body.Close()
 
 	regRes := new(RegisterClientResult)
