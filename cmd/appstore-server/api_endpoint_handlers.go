@@ -14,6 +14,11 @@ import (
 	"os"
 )
 
+func writeErrorJson(w http.ResponseWriter, r *http.Request, err error, status int) {
+	render.Status(r, status)
+	render.JSON(w, r, struct{ Error string }{err.Error()})
+}
+
 func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := logger.MakeAPILogger(r)
@@ -21,7 +26,7 @@ func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFu
 		results, err := search.FindCharts(settings, query, "", logger)
 
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			writeErrorJson(w, r, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -35,7 +40,7 @@ func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 		results, err := search.GetAllCharts(settings, apiReqLogger)
 
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			writeErrorJson(w, r, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -69,8 +74,7 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 		// TODO: Handle TLS related things:
 		chartPath, err := install.LocateChartPath(packageName, chartSettings.Version, false, "", settings, apiReqLogger)
 		if err != nil {
-			render.Status(r, http.StatusNotFound)
-			render.JSON(w, r, err)
+			writeErrorJson(w, r, err, http.StatusNotFound)
 			return
 		}
 
@@ -84,20 +88,18 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 
 			regRes, err := dataporten.ParseRegistrationResult(regResp.Body, apiReqLogger)
 			if err != nil {
-				apiReqLogger.Fatal("Dataporten returned invalid JSON " + err.Error())
-				render.Status(r, http.StatusInternalServerError)
-				render.JSON(w, r, err)
+				writeErrorJson(w, r, err, http.StatusInternalServerError)
 				return
 			}
-			apiReqLogger.Printf(regRes.Owner)
+			apiReqLogger.Debug(regRes)
 		}
+
 		res, err := install.InstallChart(chartPath, chartSettings, settings, apiReqLogger)
 
 		if err == nil {
 			render.JSON(w, r, res)
 		} else {
-			render.Status(r, http.StatusInternalServerError)
-			render.JSON(w, r, err)
+			writeErrorJson(w, r, err, http.StatusInternalServerError)
 		}
 	}
 }
