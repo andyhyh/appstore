@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Sirupsen/logrus"
+	"github.com/m4rw3r/uuid"
 	"net/http"
 	"time"
 )
@@ -15,6 +16,7 @@ type ClientSettings struct {
 	ScopesRequested []string `json:"scopes_requested"`
 	RedirectURI     []string `json:"redirect_uri"`
 	Description     string   `json:"descr"`
+	ClientSecret    string   `json:"client_secret"`
 }
 
 type RegisterClientResult struct {
@@ -26,6 +28,14 @@ type RegisterClientResult struct {
 var dataportenURL = "https://clientadmin.dataporten-api.no/clients/"
 
 func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*RegisterClientResult, error) {
+	if cs.ClientSecret == "" {
+		clientSecret, err := uuid.V4()
+		if err != nil {
+			logger.Debug("Could not create client secret: %s" + err.Error())
+			return nil, err
+		}
+		cs.ClientSecret = clientSecret.String()
+	}
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(cs)
 	if err != nil {

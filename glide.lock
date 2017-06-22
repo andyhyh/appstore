@@ -1,5 +1,5 @@
-hash: 8eae346c73a2e48881b1b47885659e12bdae5632884a228f3331f7b9b06a4988
-updated: 2017-06-20T09:43:16.333881794+02:00
+hash: 6e5ad1d602fba4d176f61e96a2fbda24a90f1b1563c055a4239ba4f44e1713ba
+updated: 2017-06-22T12:28:55.5760479+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -143,6 +143,8 @@ imports:
   version: 72f9bd7c4e0c2a40055ab3d0f09654f730cce982
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
+- name: github.com/m4rw3r/uuid
+  version: 00c72d48d5aaaf3058e26d9641164c43ba239f33
 - name: github.com/mailru/easyjson
   version: d5b7844b561a7bc640052f1b935f7b800330d7e0
   subpackages:

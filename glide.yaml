@@ -26,3 +26,5 @@ import:
   - pkg/proto/hapi/chart
   - pkg/proto/hapi/services
   - pkg/repo
+- package: github.com/m4rw3r/uuid
+  version: ^1.0.0
