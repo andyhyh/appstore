@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
+	"github.com/uninett/appstore/pkg/dataporten"
 	"github.com/uninett/appstore/pkg/helmutil"
 	"github.com/uninett/appstore/pkg/install"
 	"github.com/uninett/appstore/pkg/logger"
 	"github.com/uninett/appstore/pkg/search"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"net/http"
+	"os"
 )
 
 func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
@@ -64,6 +66,14 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 			return
 		}
 
+		if chartSettings.DataportenClientSettings.Name != "" {
+			regRes, err := dataporten.CreateClient(chartSettings.DataportenClientSettings, os.Getenv("TOKEN"), apiReqLogger)
+			if err != nil {
+				render.Status(r, http.StatusInternalServerError)
+				render.JSON(w, r, err)
+			}
+			apiReqLogger.Printf(regRes.Owner)
+		}
 		res, err := install.InstallChart(packageName, chartSettings, settings, apiReqLogger)
 
 		if err == nil {
