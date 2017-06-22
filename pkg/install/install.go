@@ -2,7 +2,6 @@ package install
 
 import (
 	"github.com/Sirupsen/logrus"
-	"github.com/uninett/appstore/pkg/debug"
 	"github.com/uninett/appstore/pkg/helmutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 
@@ -13,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"text/template"
 
@@ -117,7 +115,7 @@ func vals(valueFiles []string) ([]byte, error) {
 // - URL
 //
 // If 'verify' is true, this will attempt to also verify the chart.
-func locateChartPath(name, version string, verify bool, keyring string, settings *helm_env.EnvSettings, logger *logrus.Entry) (string, error) {
+func LocateChartPath(name, version string, verify bool, keyring string, settings *helm_env.EnvSettings, logger *logrus.Entry) (string, error) {
 	name = "stable/" + strings.TrimSpace(name)
 	version = strings.TrimSpace(version)
 	if fi, err := os.Stat(name); err == nil {
@@ -213,24 +211,10 @@ func checkDependencies(ch *chart.Chart, reqs *chartutil.Requirements) error {
 	return nil
 }
 
-func InstallChart(chartName string, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings, logger *logrus.Entry) (*services.GetReleaseStatusResponse, error) {
-	defer debug.GetFunctionTiming(time.Now(),
-		"install.InstallChart returned",
-		logrus.Fields{
-			"chart_installed": chartName,
-		},
-		logger,
-	)
-
+func InstallChart(chartPath string, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings, logger *logrus.Entry) (*services.GetReleaseStatusResponse, error) {
 	client := helmutil.InitHelmClient(settings)
 	namespace := ""
-
-	// TODO: Handle TLS related things:
-	chartPath, err := locateChartPath(chartName, chartSettings.Version, false, "", settings, logger)
-	if err != nil {
-		return nil, err
-	}
-	logger.Debugf("Installing %s using chart path: %s", chartName, chartPath)
+	logger.Debugf("Installing chart with chart path: %s", chartPath)
 
 	if namespace == "" {
 		namespace = defaultNamespace()

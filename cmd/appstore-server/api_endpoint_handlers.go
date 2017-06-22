@@ -66,15 +66,24 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 			return
 		}
 
+		// TODO: Handle TLS related things:
+		chartPath, err := install.LocateChartPath(packageName, chartSettings.Version, false, "", settings, apiReqLogger)
+		if err != nil {
+			render.Status(r, http.StatusNotFound)
+			render.JSON(w, r, err)
+			return
+		}
+
 		if chartSettings.DataportenClientSettings.Name != "" {
 			regRes, err := dataporten.CreateClient(chartSettings.DataportenClientSettings, os.Getenv("TOKEN"), apiReqLogger)
 			if err != nil {
 				render.Status(r, http.StatusInternalServerError)
 				render.JSON(w, r, err)
+				return
 			}
 			apiReqLogger.Printf(regRes.Owner)
 		}
-		res, err := install.InstallChart(packageName, chartSettings, settings, apiReqLogger)
+		res, err := install.InstallChart(chartPath, chartSettings, settings, apiReqLogger)
 
 		if err == nil {
 			render.JSON(w, r, res)
