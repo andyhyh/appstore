@@ -86,3 +86,13 @@ func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*Regis
 	}
 	return regRes, nil
 }
+
+func DeleteClient(clientId string, token string, logger *logrus.Entry) (*http.Response, error) {
+	deleteUrl := dataportenURL + clientId
+	req, err := initAuthorizedRequest("DELETE", deleteUrl, nil, token)
+	if err != nil {
+		return nil, err
+	}
+
+	return executeRequest(req)
+}
