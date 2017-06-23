@@ -2,18 +2,23 @@ package main
 
 import (
 	"fmt"
-	"github.com/Sirupsen/logrus"
-	"github.com/pressly/chi"
-	"github.com/uninett/appstore/pkg/logger"
-	"github.com/uninett/appstore/pkg/search"
-	"github.com/uninett/appstore/pkg/status"
 	"html/template"
-	helm_search "k8s.io/helm/cmd/helm/search"
-	helm_env "k8s.io/helm/pkg/helm/environment"
-	"k8s.io/helm/pkg/proto/hapi/release"
 	"net/http"
 	"path"
 	"path/filepath"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/pressly/chi"
+
+	"github.com/uninett/appstore/pkg/install"
+	"github.com/uninett/appstore/pkg/logger"
+	"github.com/uninett/appstore/pkg/status"
+
+	helm_search "k8s.io/helm/cmd/helm/search"
+	"k8s.io/helm/pkg/chartutil"
+	helm_env "k8s.io/helm/pkg/helm/environment"
+	"k8s.io/helm/pkg/proto/hapi/chart"
+	"k8s.io/helm/pkg/proto/hapi/release"
 )
 
 func returnHTML(w http.ResponseWriter, template string, templates map[string]*template.Template, res interface{}, err error, status int) {
