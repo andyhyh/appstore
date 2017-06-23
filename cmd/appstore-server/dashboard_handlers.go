@@ -76,7 +76,7 @@ func makePackageIndexHandler(settings *helm_env.EnvSettings, templates map[strin
 	}
 }
 
-func packageDetailHandler(packageName string, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+func packageDetailHandler(packageName string, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, *chart.Chart) {
 	if packageName == "" {
 		return http.StatusBadRequest, fmt.Errorf("no package specified"), nil
 	}
@@ -92,9 +92,7 @@ func packageDetailHandler(packageName string, version string, settings *helm_env
 		return http.StatusInternalServerError, err, nil
 	}
 
-	return http.StatusOK, nil, struct {
-		Package *chart.Metadata
-	}{chartRequested.Metadata}
+	return http.StatusOK, nil, chartRequested
 }
 
 func makePackageDetailHandler(settings *helm_env.EnvSettings, templates map[string]*template.Template) http.HandlerFunc {
@@ -105,7 +103,10 @@ func makePackageDetailHandler(settings *helm_env.EnvSettings, templates map[stri
 
 		status, err, res := packageDetailHandler(packageName, version, settings, apiReqLogger)
 
-		returnHTML(w, "package.html", templates, res, err, status)
+		formattedRes := struct {
+			Package *chart.Metadata
+		}{res.Metadata}
+		returnHTML(w, "package.html", templates, formattedRes, err, status)
 	}
 }
 
