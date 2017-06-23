@@ -83,17 +83,16 @@ func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFu
 	}
 }
 
-func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, []*search.Result) {
+func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, [][]*search.Result) {
 	results, err := app_search.GetAllCharts(settings, logger)
 
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
 	}
 
-	newestPackages := app_search.GetNewestVersion(results)
-	app_search.SortByName(newestPackages)
+	packagesAllVersions := app_search.GroupResultsByName(results)
 
-	return http.StatusOK, nil, newestPackages
+	return http.StatusOK, nil, packagesAllVersions
 }
 
 func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {

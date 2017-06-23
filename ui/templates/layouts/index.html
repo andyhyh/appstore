@@ -2,14 +2,35 @@
 {{ define "content" }}
   <div>
     {{ range .Results }}
-      <div>
-        <a href="/packages/{{ .Chart.Name }}">
-          <h3>{{ .Chart.Name }}</h3><span> {{ .Chart.Version }}
-        </a>
-        <p>{{ .Chart.Description }}</p>
-      </div>
+      {{ $firstChart := index . 0 }}
+        <div>
+          <a id="{{ $firstChart.Chart.Name }}-detail-link" href="/package/{{ $firstChart.Chart.Name }}/{{ $firstChart.Chart.Version }}">
+            <h3>{{ $firstChart.Chart.Name }}</h3>
+          </a>
+          <p>{{ $firstChart.Chart.Description }}</p>
+        </div>
+        <select data-package-name="{{ $firstChart.Chart.Name }}" class="version-selector">
+        {{ range . }}
+        <option value="{{ .Chart.Version }}">{{ .Chart.Version }}</option>
+        {{ end }}
+        </select>
     {{ end }}
   </div>
 {{ end }}
 {{ define "scripts" }}
+  <script>
+    function updatePackageLink(event) {
+      var selectBox = event.target || event.srcElement;
+      var packageName = selectBox.getAttribute("data-package-name");
+      var version = selectBox.value;
+
+      var packageLink = document.getElementById(packageName + "-detail-link");
+      packageLink.setAttribute("href", "/package/" + packageName + "/" + version);
+    }
+
+    var versionSelectors = document.getElementsByClassName("version-selector");
+    for (i = 0; i < versionSelectors.length; i++) {
+      versionSelectors[i].addEventListener("change", updatePackageLink);
+    }
+  </script>
 {{ end }}

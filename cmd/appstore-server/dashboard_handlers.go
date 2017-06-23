@@ -70,7 +70,7 @@ func makePackageIndexHandler(settings *helm_env.EnvSettings, templates map[strin
 
 		status, err, newestPackages := allPackagesHandler(settings, apiReqLogger)
 		formattedRes := struct {
-			Results []*helm_search.Result
+			Results [][]*helm_search.Result
 		}{newestPackages}
 		returnHTML(w, "index.html", templates, formattedRes, err, status)
 	}
