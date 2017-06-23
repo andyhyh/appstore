@@ -27,7 +27,7 @@ func createPackagesRouter(settings *helm_env.EnvSettings) http.Handler {
 func createPackageRouter(settings *helm_env.EnvSettings) http.Handler {
 	r := chi.NewRouter()
 	r.Get("/:version/values", makePackageUserValuesHandler(settings))
-	r.Post("/install", makeInstallPackageHandler(settings))
+	r.Post("/:version/install", makeInstallPackageHandler(settings))
 	return r
 }
 

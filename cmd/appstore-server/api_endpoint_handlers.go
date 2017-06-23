@@ -112,7 +112,7 @@ func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 	}
 }
 
-func installPackageHandler(packageName string, chartSettingsRaw io.ReadCloser, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+func installPackageHandler(packageName string, version string, chartSettingsRaw io.ReadCloser, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if packageName == "" {
 		return http.StatusNotFound, fmt.Errorf("package not found"), nil
 	}
@@ -128,7 +128,7 @@ func installPackageHandler(packageName string, chartSettingsRaw io.ReadCloser, s
 	}
 
 	// TODO: Handle TLS related things:
-	chartPath, err := install.LocateChartPath(packageName, chartSettings.Version, false, "", settings, logger)
+	chartPath, err := install.LocateChartPath(packageName, version, false, "", settings, logger)
 	if err != nil {
 		return http.StatusNotFound, err, nil
 	}
@@ -166,7 +166,8 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
 		packageName := chi.URLParam(r, "packageName")
-		status, err, res := installPackageHandler(packageName, r.Body, settings, apiReqLogger)
+		version := chi.URLParam(r, "version")
+		status, err, res := installPackageHandler(packageName, version, r.Body, settings, apiReqLogger)
 
 		returnJSON(w, r, res, err, status)
 	}
