@@ -64,9 +64,7 @@ func packageUserValuesHandler(packageName string, version string, settings *helm
 func makePackageUserValuesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := logger.MakeAPILogger(r)
-		logger.Info("wow")
 		packageName := chi.URLParam(r, "packageName")
-		logger.Debug(packageName)
 		packageVersion := chi.URLParam(r, "version")
 
 		status, err, res := packageUserValuesHandler(packageName, packageVersion, settings, logger)
