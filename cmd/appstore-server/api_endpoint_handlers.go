@@ -17,7 +17,6 @@ import (
 
 	app_search "github.com/uninett/appstore/pkg/search"
 	"k8s.io/helm/cmd/helm/search"
-	"k8s.io/helm/pkg/chartutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 )
 
@@ -44,20 +43,14 @@ func chartSearchHandler(query string, settings *helm_env.EnvSettings, logger *lo
 }
 
 func packageUserValuesHandler(packageName string, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
-	// TODO: Handle TLS related things:
-	chartPath, err := install.LocateChartPath(packageName, version, false, "", settings, logger)
-	if err != nil {
-		return http.StatusNotFound, err, nil
+
+	status, err, res := packageDetailHandler(packageName, version, settings, logger)
+
+	if status != http.StatusOK {
+		return status, err, nil
 	}
 
-	// // Check chart requirements to make sure all dependencies are present in /charts
-	chartRequested, err := chartutil.Load(chartPath)
-	if err != nil {
-		return http.StatusInternalServerError, err, nil
-	}
-
-	userVals, err := install.GetValsByKey("persistence", chartRequested.GetValues().GetRaw(), logger)
-
+	userVals, err := install.GetValsByKey("persistence", res.GetValues().GetRaw(), logger)
 	return http.StatusOK, err, userVals
 }
 
@@ -127,16 +120,9 @@ func installPackageHandler(packageName string, version string, chartSettingsRaw 
 		return http.StatusBadRequest, fmt.Errorf("invalid json"), nil
 	}
 
-	// TODO: Handle TLS related things:
-	chartPath, err := install.LocateChartPath(packageName, version, false, "", settings, logger)
-	if err != nil {
-		return http.StatusNotFound, err, nil
-	}
-
-	// // Check chart requirements to make sure all dependencies are present in /charts
-	chartRequested, err := chartutil.Load(chartPath)
-	if err != nil {
-		return http.StatusInternalServerError, err, nil
+	status, err, chartRequested := packageDetailHandler(packageName, version, settings, logger)
+	if status != http.StatusOK {
+		return status, err, nil
 	}
 
 	if chartSettings.DataportenClientSettings.Name != "" {
