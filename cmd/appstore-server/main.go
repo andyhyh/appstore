@@ -3,15 +3,22 @@ package main
 import (
 	"flag"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
-	"github.com/pressly/chi"
-	"github.com/pressly/chi/middleware"
-	"github.com/uninett/appstore/pkg/helmutil"
-	"github.com/uninett/appstore/pkg/logger"
-	helm_env "k8s.io/helm/pkg/helm/environment"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/uninett/appstore/cmd/appstore-server/api"
+	"github.com/uninett/appstore/cmd/appstore-server/dashboard"
+	"github.com/uninett/appstore/pkg/helmutil"
+	"github.com/uninett/appstore/pkg/logger"
+	"github.com/uninett/appstore/pkg/templateutil"
+
+	"github.com/pressly/chi"
+	"github.com/pressly/chi/middleware"
+
+	log "github.com/Sirupsen/logrus"
+
+	helm_env "k8s.io/helm/pkg/helm/environment"
 )
 
 var startTime time.Time
@@ -35,12 +42,12 @@ func main() {
 	baseRouter.Use(middleware.CloseNotify)
 	baseRouter.Use(middleware.Timeout(60 * time.Second))
 
-	baseRouter.Mount("/api", createAPIRouter(settings))
-	templates, err := ProcessTemplates("ui/templates/")
+	baseRouter.Mount("/api", api.CreateAPIRouter(settings))
+	templates, err := templateutil.ProcessTemplates("ui/templates/")
 	if err != nil {
 		log.Fatal(err)
 	}
-	baseRouter.Mount("/", createDashboardRouter(settings, templates))
+	baseRouter.Mount("/", dashboard.CreateDashboardRouter(settings, templates))
 	baseRouter.Get("/healthz", healthzHandler)
 
 	log.SetLevel(log.DebugLevel)

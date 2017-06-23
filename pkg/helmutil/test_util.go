@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package helmutil
 
 import (
 	"fmt"
@@ -26,7 +26,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes/timestamp"
 
-	"github.com/uninett/appstore/pkg/helmutil"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/proto/hapi/chart"
@@ -48,7 +47,7 @@ kind: Secret
 metadata:
   name: fixture
 `
-var mockSettings = helmutil.InitHelmSettings(false, "")
+var MockSettings = InitHelmSettings(false, "")
 
 var localRepositoryIndexFile = "index.yaml"
 
@@ -243,17 +242,17 @@ type releaseCase struct {
 // This does not clean up the directory. You must do that yourself.
 // You  must also set helmHome yourself.
 func tempHelmHome(t *testing.T) (helmpath.Home, error) {
-	oldhome := mockSettings.Home
+	oldhome := MockSettings.Home
 	dir, err := ioutil.TempDir("", "helm_home-")
 	if err != nil {
 		return helmpath.Home("n/"), err
 	}
 
-	mockSettings.Home = helmpath.Home(dir)
-	if err := ensureTestHome(mockSettings.Home, t); err != nil {
+	MockSettings.Home = helmpath.Home(dir)
+	if err := ensureTestHome(MockSettings.Home, t); err != nil {
 		return helmpath.Home("n/"), err
 	}
-	mockSettings.Home = oldhome
+	MockSettings.Home = oldhome
 	return helmpath.Home(dir), nil
 }
 
@@ -310,6 +309,6 @@ func ensureTestHome(home helmpath.Home, t *testing.T) error {
 		return fmt.Errorf("%s must be a file, not a directory", localRepoIndexFile)
 	}
 
-	t.Logf("$HELM_HOME has been configured at %s.\n", mockSettings.Home.String())
+	t.Logf("$HELM_HOME has been configured at %s.\n", MockSettings.Home.String())
 	return nil
 }

@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"encoding/json"
@@ -17,7 +17,9 @@ import (
 
 	app_search "github.com/uninett/appstore/pkg/search"
 	"k8s.io/helm/cmd/helm/search"
+	"k8s.io/helm/pkg/chartutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
+	"k8s.io/helm/pkg/proto/hapi/chart"
 )
 
 type ErrorJson struct {
@@ -33,6 +35,25 @@ func returnJSON(w http.ResponseWriter, r *http.Request, res interface{}, err err
 	}
 }
 
+func PackageDetailHandler(packageName string, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, *chart.Chart) {
+	if packageName == "" {
+		return http.StatusBadRequest, fmt.Errorf("no package specified"), nil
+	}
+
+	// TODO: Handle TLS related things:
+	chartPath, err := install.LocateChartPath(packageName, version, false, "", settings, logger)
+	if err != nil {
+		return http.StatusNotFound, err, nil
+	}
+
+	chartRequested, err := chartutil.Load(chartPath)
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
+
+	return http.StatusOK, nil, chartRequested
+}
+
 func chartSearchHandler(query string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	results, err := app_search.FindCharts(settings, query, "", logger)
 	if err != nil {
@@ -44,7 +65,7 @@ func chartSearchHandler(query string, settings *helm_env.EnvSettings, logger *lo
 
 func packageUserValuesHandler(packageName string, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 
-	status, err, res := packageDetailHandler(packageName, version, settings, logger)
+	status, err, res := PackageDetailHandler(packageName, version, settings, logger)
 
 	if status != http.StatusOK {
 		return status, err, nil
@@ -83,7 +104,7 @@ func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFu
 	}
 }
 
-func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, [][]*search.Result) {
+func AllPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, [][]*search.Result) {
 	results, err := app_search.GetAllCharts(settings, logger)
 
 	if err != nil {
@@ -98,7 +119,7 @@ func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (i
 func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
-		status, err, res := allPackagesHandler(settings, apiReqLogger)
+		status, err, res := AllPackagesHandler(settings, apiReqLogger)
 
 		returnJSON(w, r, res, err, status)
 	}
@@ -119,7 +140,7 @@ func installPackageHandler(packageName string, version string, chartSettingsRaw 
 		return http.StatusBadRequest, fmt.Errorf("invalid json"), nil
 	}
 
-	status, err, chartRequested := packageDetailHandler(packageName, version, settings, logger)
+	status, err, chartRequested := PackageDetailHandler(packageName, version, settings, logger)
 	if status != http.StatusOK {
 		return status, err, nil
 	}
@@ -131,11 +152,10 @@ func installPackageHandler(packageName string, version string, chartSettingsRaw 
 			return http.StatusBadRequest, fmt.Errorf(regResp.Status), nil
 		}
 
-		regRes, err := dataporten.ParseRegistrationResult(regResp.Body, logger)
+		_, err = dataporten.ParseRegistrationResult(regResp.Body, logger)
 		if err != nil {
 			return http.StatusInternalServerError, err, nil
 		}
-		logger.Debug(regRes)
 	}
 
 	res, err := install.InstallChart(chartRequested, chartSettings, settings, logger)

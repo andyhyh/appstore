@@ -1,4 +1,4 @@
-package main
+package handlerutil
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func testHandler(t *testing.T, h http.Handler, method, path string, body io.Reader) (*http.Response, *bytes.Buffer) {
+func TestHandler(t *testing.T, h http.Handler, method, path string, body io.Reader) (*http.Response, *bytes.Buffer) {
 	r, err := http.NewRequest(method, path, body)
 	if err != nil {
 		t.Fatal(err)
@@ -19,7 +19,7 @@ func testHandler(t *testing.T, h http.Handler, method, path string, body io.Read
 	return w.Result(), w.Body
 }
 
-func checkStatus(resp *http.Response, wantedStatus int, t *testing.T) {
+func CheckStatus(resp *http.Response, wantedStatus int, t *testing.T) {
 	if status := wantedStatus; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)

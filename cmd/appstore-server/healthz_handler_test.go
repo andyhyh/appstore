@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/uninett/appstore/cmd/appstore-server/handlerutil"
 )
 
 func TestHealthzHandler(t *testing.T) {
-	resp, body := testHandler(t, http.HandlerFunc(healthzHandler), "GET", "/health", nil)
+	resp, body := handlerutil.TestHandler(t, http.HandlerFunc(healthzHandler), "GET", "/health", nil)
 
-	checkStatus(resp, http.StatusOK, t)
+	handlerutil.CheckStatus(resp, http.StatusOK, t)
 
 	var returnedHi HealthInfo
 	err := json.NewDecoder(body).Decode(&returnedHi)
