@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,24 +24,8 @@ import (
 	"k8s.io/helm/pkg/kube"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/services"
+	"k8s.io/helm/pkg/strvals"
 )
-
-type valueFiles []string
-
-func (v *valueFiles) String() string {
-	return fmt.Sprint(*v)
-}
-
-func (v *valueFiles) Type() string {
-	return "valueFiles"
-}
-
-func (v *valueFiles) Set(value string) error {
-	for _, filePath := range strings.Split(value, ",") {
-		*v = append(*v, filePath)
-	}
-	return nil
-}
 
 // Merges source and destination map, preferring values from the source map
 func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[string]interface{} {
@@ -76,30 +59,14 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 	return dest
 }
 
-func vals(valueFiles []string) ([]byte, error) {
+func createValuesYaml(cs *helmutil.ChartSettings) ([]byte, error) {
 	base := map[string]interface{}{}
 
-	// User specified a values files via -f/--values
-	for _, filePath := range valueFiles {
-		currentMap := map[string]interface{}{}
-		bytes, err := ioutil.ReadFile(filePath)
-		if err != nil {
-			return []byte{}, err
+	for key, value := range cs.Values {
+		if err := strvals.ParseInto(key+"="+value, base); err != nil {
+			return []byte{}, fmt.Errorf("failed parsing --set data: %s", err)
 		}
-
-		if err := yaml.Unmarshal(bytes, &currentMap); err != nil {
-			return []byte{}, fmt.Errorf("failed to parse %s: %s", filePath, err)
-		}
-		// Merge with the previous map
-		base = mergeValues(base, currentMap)
 	}
-
-	// User specified a value via --set
-	// for _, value := range i.values {
-	// if err := strvals.ParseInto(value, base); err != nil {
-	// return []byte{}, fmt.Errorf("failed parsing --set data: %s", err)
-	// }
-	// }
 
 	return yaml.Marshal(base)
 }
@@ -212,15 +179,9 @@ func checkDependencies(ch *chart.Chart, reqs *chartutil.Requirements) error {
 }
 
 func InstallChart(chartPath string, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings, logger *logrus.Entry) (*services.GetReleaseStatusResponse, error) {
-	client := helmutil.InitHelmClient(settings)
-	namespace := ""
 	logger.Debugf("Installing chart with chart path: %s", chartPath)
 
-	if namespace == "" {
-		namespace = defaultNamespace()
-	}
-
-	rawVals, err := vals(chartSettings.Values)
+	rawVals, err := createValuesYaml(chartSettings)
 	if err != nil {
 		return nil, err
 	}
@@ -253,8 +214,15 @@ func InstallChart(chartPath string, chartSettings *helmutil.ChartSettings, setti
 		return nil, err
 	}
 
+	namespace := ""
+
+	if namespace == "" {
+		namespace = defaultNamespace()
+	}
+
 	name := ""
 	dryRun := false
+	client := helmutil.InitHelmClient(settings)
 	res, err := client.InstallReleaseFromChart(
 		chartRequested,
 		namespace,
