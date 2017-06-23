@@ -135,6 +135,12 @@ func installPackageHandler(packageName string, chartSettingsRaw io.ReadCloser, s
 		return http.StatusNotFound, err, nil
 	}
 
+	// // Check chart requirements to make sure all dependencies are present in /charts
+	chartRequested, err := chartutil.Load(chartPath)
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
+
 	if chartSettings.DataportenClientSettings.Name != "" {
 		regResp, err := dataporten.CreateClient(chartSettings.DataportenClientSettings, os.Getenv("TOKEN"), logger)
 
@@ -149,7 +155,7 @@ func installPackageHandler(packageName string, chartSettingsRaw io.ReadCloser, s
 		logger.Debug(regRes)
 	}
 
-	res, err := install.InstallChart(chartPath, chartSettings, settings, logger)
+	res, err := install.InstallChart(chartRequested, chartSettings, settings, logger)
 
 	if err == nil {
 		return http.StatusOK, nil, res
