@@ -196,9 +196,7 @@ func GetValsByKey(desiredKey string, rawVals string, logger *logrus.Entry) (map[
 	return desiredVals, nil
 }
 
-func InstallChart(chartPath string, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings, logger *logrus.Entry) (*services.GetReleaseStatusResponse, error) {
-	logger.Debugf("Installing chart with chart path: %s", chartPath)
-
+func InstallChart(chartRequested *chart.Chart, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings, logger *logrus.Entry) (*services.GetReleaseStatusResponse, error) {
 	rawVals, err := createValuesYaml(chartSettings)
 	if err != nil {
 		return nil, err
@@ -213,12 +211,6 @@ func InstallChart(chartPath string, chartSettings *helmutil.ChartSettings, setti
 	// // Print the final name so the user knows what the final name of the release is.
 	// fmt.Printf("FINAL NAME: %s\n", i.name)
 	// }
-
-	// // Check chart requirements to make sure all dependencies are present in /charts
-	chartRequested, err := chartutil.Load(chartPath)
-	if err != nil {
-		return nil, err
-	}
 
 	if req, err := chartutil.LoadRequirements(chartRequested); err == nil {
 		// If checkDependencies returns an error, we have unfullfilled dependencies.
