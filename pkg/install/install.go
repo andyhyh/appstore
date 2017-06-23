@@ -1,10 +1,6 @@
 package install
 
 import (
-	"github.com/Sirupsen/logrus"
-	"github.com/uninett/appstore/pkg/helmutil"
-	helm_env "k8s.io/helm/pkg/helm/environment"
-
 	"bytes"
 	"errors"
 	"fmt"
@@ -15,7 +11,10 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
+	"github.com/Sirupsen/logrus"
 	"github.com/ghodss/yaml"
+	"github.com/uninett/appstore/pkg/helmutil"
+	helm_env "k8s.io/helm/pkg/helm/environment"
 
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/downloader"
