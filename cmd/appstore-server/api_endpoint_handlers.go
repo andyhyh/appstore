@@ -3,6 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
@@ -10,13 +14,10 @@ import (
 	"github.com/uninett/appstore/pkg/helmutil"
 	"github.com/uninett/appstore/pkg/install"
 	"github.com/uninett/appstore/pkg/logger"
-	"io"
 
 	app_search "github.com/uninett/appstore/pkg/search"
 	"k8s.io/helm/cmd/helm/search"
 	helm_env "k8s.io/helm/pkg/helm/environment"
-	"net/http"
-	"os"
 )
 
 type ErrorJson struct {
