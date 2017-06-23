@@ -93,8 +93,8 @@ func packageDetailHandler(packageName string, version string, settings *helm_env
 	}
 
 	return http.StatusOK, nil, struct {
-		Result *chart.Chart
-	}{chartRequested}
+		Package *chart.Metadata
+	}{chartRequested.Metadata}
 }
 
 func makePackageDetailHandler(settings *helm_env.EnvSettings, templates map[string]*template.Template) http.HandlerFunc {

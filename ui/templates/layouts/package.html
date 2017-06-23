@@ -1,9 +1,9 @@
-{{ define "title" }}{{.Result.Metadata.Name }}{{ end }}
+{{ define "title" }}{{ .Package.Name }}{{ end }}
 {{ define "content" }}
     <div>
-      <h2 id="packageName">{{ .Result.Metadata.Name }}</h2>
-      <p id="packageVersion">{{ .Result.Metadata.Version }}</p>
-      <p>{{ .Result.Metadata.Description }}</p>
+      <h2 id="packageName">{{ .Package.Name }}</h2>
+      <p id="packageVersion">{{ .Package.Version }}</p>
+      <p>{{ .Package.Description }}</p>
     </div>
     <div>
       <h3> Values: </h3>
