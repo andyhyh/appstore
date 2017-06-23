@@ -17,6 +17,7 @@ import (
 
 	app_search "github.com/uninett/appstore/pkg/search"
 	"k8s.io/helm/cmd/helm/search"
+	"k8s.io/helm/pkg/chartutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 )
 
@@ -40,6 +41,45 @@ func chartSearchHandler(query string, settings *helm_env.EnvSettings, logger *lo
 	}
 
 	return http.StatusOK, nil, results
+}
+
+func packageUserValuesHandler(packageName string, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+	// TODO: Handle TLS related things:
+	chartPath, err := install.LocateChartPath(packageName, version, false, "", settings, logger)
+	if err != nil {
+		return http.StatusNotFound, err, nil
+	}
+
+	// // Check chart requirements to make sure all dependencies are present in /charts
+	chartRequested, err := chartutil.Load(chartPath)
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
+
+	userVals, err := install.GetValsByKey("persistence", chartRequested.GetValues().GetRaw(), logger)
+
+	return http.StatusOK, err, userVals
+}
+
+func makePackageUserValuesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		logger := logger.MakeAPILogger(r)
+		logger.Info("wow")
+		packageName := chi.URLParam(r, "packageName")
+		logger.Debug(packageName)
+		packageVersion := chi.URLParam(r, "version")
+
+		status, err, res := packageUserValuesHandler(packageName, packageVersion, settings, logger)
+		jsonString, err := json.Marshal(res)
+
+		if err != nil {
+			logger.Warn(err)
+		} else {
+			logger.Infof("%s", jsonString)
+		}
+
+		returnJSON(w, r, res, err, status)
+	}
 }
 
 func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
