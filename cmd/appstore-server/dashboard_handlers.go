@@ -76,29 +76,34 @@ func makePackageIndexHandler(settings *helm_env.EnvSettings, templates map[strin
 	}
 }
 
-func packageDetailHandler(packageName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+func packageDetailHandler(packageName string, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if packageName == "" {
 		return http.StatusBadRequest, fmt.Errorf("no package specified"), nil
 	}
 
-	packageVersions, err := search.GetSinglePackage(settings, packageName, logger)
+	// TODO: Handle TLS related things:
+	chartPath, err := install.LocateChartPath(packageName, version, false, "", settings, logger)
+	if err != nil {
+		return http.StatusNotFound, err, nil
+	}
 
+	chartRequested, err := chartutil.Load(chartPath)
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
 	}
 
-	newestVersion, otherVersions := packageVersions[0], packageVersions[1:len(packageVersions)]
 	return http.StatusOK, nil, struct {
-		NewestVersion *helm_search.Result
-		OtherVersions []*helm_search.Result
-	}{newestVersion, otherVersions}
+		Result *chart.Chart
+	}{chartRequested}
 }
 
 func makePackageDetailHandler(settings *helm_env.EnvSettings, templates map[string]*template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		packageName := chi.URLParam(r, "packageName")
 		apiReqLogger := logger.MakeAPILogger(r)
-		status, err, res := packageDetailHandler(packageName, settings, apiReqLogger)
+		packageName := chi.URLParam(r, "packageName")
+		version := chi.URLParam(r, "version")
+
+		status, err, res := packageDetailHandler(packageName, version, settings, apiReqLogger)
 
 		returnHTML(w, "package.html", templates, res, err, status)
 	}
