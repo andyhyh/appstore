@@ -18,6 +18,7 @@ package search
 
 import (
 	"k8s.io/helm/cmd/helm/search"
+	"sort"
 )
 
 func GetNewestVersion(packages []*search.Result) []*search.Result {
@@ -41,16 +42,26 @@ func GetNewestVersion(packages []*search.Result) []*search.Result {
 	return newestVersionsArray
 }
 
-func GroupResultsByName(packages []*search.Result) map[string][]*search.Result {
+func GroupResultsByName(packages []*search.Result) [][]*search.Result {
 	packageGroups := make(map[string][]*search.Result)
+	var chartNames []string
 	for _, res := range packages {
 		chartName := res.Chart.GetName()
 		packageGroups[chartName] = append(packageGroups[chartName], res)
 	}
 
-	for _, v := range packageGroups {
-		SortByRevision(v)
+	for chartName, _ := range packageGroups {
+		chartNames = append(chartNames, chartName)
 	}
 
-	return packageGroups
+	allPackages := make([][]*search.Result, 0)
+	sort.Strings(chartNames)
+
+	for _, chartName := range chartNames {
+		vals := packageGroups[chartName]
+		SortByRevision(vals)
+		allPackages = append(allPackages, vals)
+	}
+
+	return allPackages
 }
