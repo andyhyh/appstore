@@ -62,9 +62,9 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 func createValuesYaml(cs *helmutil.ChartSettings) ([]byte, error) {
 	base := map[string]interface{}{}
 
-	for key, value := range cs.Values {
-		if err := strvals.ParseInto(key+"="+value, base); err != nil {
-			return []byte{}, fmt.Errorf("failed parsing --set data: %s", err)
+	for key, val := range cs.Values {
+		if err := strvals.ParseInto(key+"="+val, base); err != nil {
+			return []byte{}, fmt.Errorf("failed parsing key-value pair: k: %s, v: %s, err: %s", key, val, err)
 		}
 	}
 
