@@ -178,6 +178,24 @@ func checkDependencies(ch *chart.Chart, reqs *chartutil.Requirements) error {
 	return nil
 }
 
+func GetValsByKey(desiredKey string, rawVals string, logger *logrus.Entry) (map[string]interface{}, error) {
+	var allVals map[string]interface{}
+	err := yaml.Unmarshal([]byte(rawVals), &allVals)
+	if err != nil {
+		logger.Debugf("Failed to input yaml: %s", err.Error())
+		return nil, err
+	}
+	var desiredVals map[string]interface{}
+	for key, val := range allVals {
+		if key == desiredKey {
+			desiredVals = val.(map[string]interface{})
+			break
+		}
+	}
+
+	return desiredVals, nil
+}
+
 func InstallChart(chartPath string, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings, logger *logrus.Entry) (*services.GetReleaseStatusResponse, error) {
 	logger.Debugf("Installing chart with chart path: %s", chartPath)
 
