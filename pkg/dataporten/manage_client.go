@@ -45,10 +45,6 @@ const dataportenURL string = "https://clientadmin.dataporten-api.no/clients/"
 func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) {
 	secrets, found := settings["secrets"].(map[string]interface{})
 	if !found {
-		switch t := settings["secrets"].(type) {
-		default:
-			fmt.Printf("type: %T", t)
-		}
 		return nil, nil
 	}
 
