@@ -150,8 +150,8 @@ func installPackageHandler(packageName string, version string, chartSettingsRaw 
 		logger.Debugf("Attempting to register dataporten application %s", dataportenSettings.Name)
 		regResp, err := dataporten.CreateClient(dataportenSettings, os.Getenv("TOKEN"), logger)
 
-		if regResp.StatusCode == http.StatusBadRequest {
-			return http.StatusBadRequest, fmt.Errorf(regResp.Status), nil
+		if regResp.StatusCode != http.StatusCreated {
+			return regResp.StatusCode, fmt.Errorf(regResp.Status), nil
 		}
 
 		_, err = dataporten.ParseRegistrationResult(regResp.Body, logger)
