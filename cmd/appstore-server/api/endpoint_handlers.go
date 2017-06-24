@@ -147,6 +147,7 @@ func installPackageHandler(packageName string, version string, chartSettingsRaw 
 	dataportenSettings, err := dataporten.MaybeGetSettings(chartSettings)
 
 	if dataportenSettings != nil && err == nil {
+		logger.Debugf("Attempting to register dataporten application %s", dataportenSettings.Name)
 		regResp, err := dataporten.CreateClient(dataportenSettings, os.Getenv("TOKEN"), logger)
 
 		if regResp.StatusCode == http.StatusBadRequest {
@@ -157,6 +158,7 @@ func installPackageHandler(packageName string, version string, chartSettingsRaw 
 		if err != nil {
 			return http.StatusInternalServerError, err, nil
 		}
+		logger.Debugf("Successfully registered application %s", dataportenSettings.Name)
 	}
 
 	res, err := install.InstallChart(chartRequested, chartSettings, settings, logger)
