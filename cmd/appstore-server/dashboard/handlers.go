@@ -8,6 +8,7 @@ import (
 	"github.com/pressly/chi"
 
 	"github.com/uninett/appstore/cmd/appstore-server/api"
+	//"github.com/uninett/appstore/pkg/install"
 	"github.com/uninett/appstore/pkg/logger"
 	"github.com/uninett/appstore/pkg/status"
 	"github.com/uninett/appstore/pkg/templateutil"
@@ -44,10 +45,14 @@ func makePackageDetailHandler(settings *helm_env.EnvSettings, templates map[stri
 		version := chi.URLParam(r, "version")
 
 		status, err, res := api.PackageDetailHandler(packageName, version, settings, apiReqLogger)
+		if err != nil {
+			status = http.StatusInternalServerError
+		}
 
 		formattedRes := struct {
 			Package *chart.Metadata
-		}{res.Metadata}
+			Values  string
+		}{res.Metadata, res.GetValues().GetRaw()}
 		returnHTML(w, "package.html", templates, formattedRes, err, status)
 	}
 }

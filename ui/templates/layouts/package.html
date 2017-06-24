@@ -1,5 +1,6 @@
 {{ define "title" }}{{ .Package.Name }}{{ end }}
 {{ define "content" }}
+  <link rel="stylesheet" href="/static/css/codemirror.css"></script>
     <div>
       <h2 id="packageName">{{ .Package.Name }}</h2>
       <p id="packageVersion">{{ .Package.Version }}</p>
@@ -7,30 +8,38 @@
     </div>
     <div>
       <h3> Values: </h3>
-      <form id="installationForm">
-        <input type="text" name="dataportenClientName"></br>
-        <input type="text" name="dataportenHost"></br>
-        <input type="submit" id="installButton" name="submit" value="Install">
-        <p id="installStatus"></p>
-        <p id="releaseName"></p>
-        <pre><p id="installStatusDetails"></p></pre>
-      </form> 
+      <textarea id="value-source">{{ .Values }}</textarea>
+      <p id="yaml-error"></p>
+      <input type="submit" id="install-button" name="submit" value="Install">
+      <p id="installStatus"></p>
+      <p id="releaseName"></p>
+      <pre><p id="installStatusDetails"></p></pre>
     </div>
 {{ end }}
 {{ define "scripts" }}
+  <script src="/static/js/js-yaml.min.js"></script>
+  <script src="/static/js/codemirror.js"></script>
+  <script src="/static/js/yaml.js"></script>
   <script>
+    'use strict';
+    var myTextArea = document.getElementById("value-source");
+    var myCodeMirror = CodeMirror.fromTextArea(myTextArea, {lineNumbers: true, mode: "yaml"});
     function installPackage(event) {
       event.preventDefault();
       var packageVersion = document.getElementById("packageVersion").innerHTML;
       var packageName = document.getElementById("packageName").innerHTML;
+      var yamlErrorStatus = document.getElementById("yaml-error");
+      yamlErrorStatus.innerHTML = "";
 
-      var form = document.getElementById("installationForm");
-      var dpName = form.elements["dataportenClientName"].value;
+      try {
+        var yaml = jsyaml.load(myCodeMirror.getValue());
+      } catch (e) {
+        yamlErrorStatus.innerHTML = e;
+        return;
+      }
+      var data = JSON.stringify(yaml); 
 
       var xhr = new XMLHttpRequest();
-      var data = JSON.stringify({
-        "dataporten_settings": {"name": dpName}
-      }); 
       var apiURL = "/api/v1/package/" + packageName + "/" + packageVersion + "/install";
       xhr.open('POST', apiURL);
       xhr.setRequestHeader('Content-Type', 'application/json');
@@ -51,9 +60,9 @@
       };
       xhr.send(data);
     }
-
-    var button = document.getElementById("installationForm").elements["submit"];
+    var button = document.getElementById("install-button");
     button.addEventListener("click", installPackage);
+
   </script>
 
 {{ end }}

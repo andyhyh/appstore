@@ -11,7 +11,6 @@ import (
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
 	"github.com/uninett/appstore/pkg/dataporten"
-	"github.com/uninett/appstore/pkg/helmutil"
 	"github.com/uninett/appstore/pkg/install"
 	"github.com/uninett/appstore/pkg/logger"
 
@@ -131,7 +130,7 @@ func installPackageHandler(packageName string, version string, chartSettingsRaw 
 	}
 	logger.Debug("Attempting to install package: " + packageName)
 
-	chartSettings := new(helmutil.ChartSettings)
+	chartSettings := make(map[string]interface{})
 	decoder := json.NewDecoder(chartSettingsRaw)
 	err := decoder.Decode(&chartSettings)
 
@@ -145,8 +144,10 @@ func installPackageHandler(packageName string, version string, chartSettingsRaw 
 		return status, err, nil
 	}
 
-	if chartSettings.DataportenClientSettings.Name != "" {
-		regResp, err := dataporten.CreateClient(chartSettings.DataportenClientSettings, os.Getenv("TOKEN"), logger)
+	dataportenSettings, err := dataporten.MaybeGetSettings(chartSettings)
+
+	if dataportenSettings != nil && err == nil {
+		regResp, err := dataporten.CreateClient(dataportenSettings, os.Getenv("TOKEN"), logger)
 
 		if regResp.StatusCode == http.StatusBadRequest {
 			return http.StatusBadRequest, fmt.Errorf(regResp.Status), nil

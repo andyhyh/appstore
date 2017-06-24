@@ -3,6 +3,7 @@ package dataporten
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/m4rw3r/uuid"
 	"io"
@@ -26,6 +27,59 @@ type RegisterClientResult struct {
 }
 
 const dataportenURL string = "https://clientadmin.dataporten-api.no/clients/"
+
+func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) {
+	secrets, found := settings["secrets"].(map[string]interface{})
+	if !found {
+		switch t := settings["secrets"].(type) {
+		default:
+			fmt.Printf("type: %T", t)
+		}
+		return nil, nil
+	}
+
+	dataportenSettings, found := secrets["dataporten"].(map[string]interface{})
+	if !found {
+		return nil, nil
+	}
+
+	clientSettings := new(ClientSettings)
+	if clientName, found := dataportenSettings["name"]; !found {
+		return nil, fmt.Errorf("dataporten name missing")
+	} else {
+		clientSettings.Name = clientName.(string)
+	}
+
+	if scopesRequestedRaw, found := dataportenSettings["scopes_requested"]; !found {
+		return nil, fmt.Errorf("dataporten scopes missing")
+	} else {
+		scopesRequestedInterface := scopesRequestedRaw.([]interface{})
+		var scopes []string
+		for _, v := range scopesRequestedInterface {
+			switch v.(type) {
+			case string:
+				scopes = append(scopes, v.(string))
+			}
+		}
+		clientSettings.ScopesRequested = scopes
+	}
+
+	if redirectURIRaw, found := dataportenSettings["redirect_uri"]; !found {
+		return nil, fmt.Errorf("dataporten redirect uri missing")
+	} else {
+		redirectURIInterface := redirectURIRaw.([]interface{})
+		var redirectURIs []string
+		for _, v := range redirectURIInterface {
+			switch v.(type) {
+			case string:
+				redirectURIs = append(redirectURIs, v.(string))
+			}
+		}
+		clientSettings.RedirectURI = redirectURIs
+	}
+
+	return clientSettings, nil
+}
 
 func initAuthorizedRequest(method string, url string, body io.Reader, token string) (*http.Request, error) {
 	req, err := http.NewRequest(method, url, body)
@@ -59,7 +113,7 @@ func ParseRegistrationResult(respBody io.ReadCloser, logger *logrus.Entry) (*Reg
 	return regRes, nil
 }
 
-func CreateClient(cs ClientSettings, token string, logger *logrus.Entry) (*http.Response, error) {
+func CreateClient(cs *ClientSettings, token string, logger *logrus.Entry) (*http.Response, error) {
 	if cs.ClientSecret == "" {
 		clientSecret, err := uuid.V4()
 		if err != nil {

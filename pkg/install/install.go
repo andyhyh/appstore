@@ -23,7 +23,6 @@ import (
 	"k8s.io/helm/pkg/kube"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/services"
-	"k8s.io/helm/pkg/strvals"
 )
 
 // Merges source and destination map, preferring values from the source map
@@ -58,13 +57,10 @@ func mergeValues(dest map[string]interface{}, src map[string]interface{}) map[st
 	return dest
 }
 
-func createValuesYaml(cs *helmutil.ChartSettings) ([]byte, error) {
+func createValuesYaml(cs map[string]interface{}) ([]byte, error) {
 	base := map[string]interface{}{}
-
-	for key, val := range cs.Values {
-		if err := strvals.ParseInto(key+"="+val, base); err != nil {
-			return []byte{}, fmt.Errorf("failed parsing key-value pair: k: %s, v: %s, err: %s", key, val, err)
-		}
+	for k, v := range cs {
+		base[k] = v
 	}
 
 	return yaml.Marshal(base)
@@ -178,6 +174,17 @@ func checkDependencies(ch *chart.Chart, reqs *chartutil.Requirements) error {
 	return nil
 }
 
+func GetAllVals(rawVals string, logger *logrus.Entry) (map[string]interface{}, error) {
+	var allVals map[string]interface{}
+	err := yaml.Unmarshal([]byte(rawVals), &allVals)
+	if err != nil {
+		logger.Debugf("Failed to input yaml: %s", err.Error())
+		return nil, err
+	}
+
+	return allVals, nil
+}
+
 func GetValsByKey(desiredKey string, rawVals string, logger *logrus.Entry) (map[string]interface{}, error) {
 	var allVals map[string]interface{}
 	err := yaml.Unmarshal([]byte(rawVals), &allVals)
@@ -196,7 +203,7 @@ func GetValsByKey(desiredKey string, rawVals string, logger *logrus.Entry) (map[
 	return desiredVals, nil
 }
 
-func InstallChart(chartRequested *chart.Chart, chartSettings *helmutil.ChartSettings, settings *helm_env.EnvSettings, logger *logrus.Entry) (*services.GetReleaseStatusResponse, error) {
+func InstallChart(chartRequested *chart.Chart, chartSettings map[string]interface{}, settings *helm_env.EnvSettings, logger *logrus.Entry) (*services.GetReleaseStatusResponse, error) {
 	rawVals, err := createValuesYaml(chartSettings)
 	if err != nil {
 		return nil, err
