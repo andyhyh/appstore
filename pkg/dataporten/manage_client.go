@@ -26,6 +26,20 @@ type RegisterClientResult struct {
 	Owner        string `json:"owner"`
 }
 
+func parseStringList(maybeStringList []interface{}) ([]string, error) {
+	var strings []string
+	for _, v := range maybeStringList {
+		switch v.(type) {
+		case string:
+			strings = append(strings, v.(string))
+		default:
+			return nil, fmt.Errorf("not list of same type")
+		}
+	}
+
+	return strings, nil
+}
+
 const dataportenURL string = "https://clientadmin.dataporten-api.no/clients/"
 
 func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) {
@@ -47,35 +61,36 @@ func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) 
 	if clientName, found := dataportenSettings["name"]; !found {
 		return nil, fmt.Errorf("dataporten name missing")
 	} else {
-		clientSettings.Name = clientName.(string)
+		switch clientName.(type) {
+		case string:
+			clientSettings.Name = clientName.(string)
+		default:
+			return nil, fmt.Errorf("name must be a string")
+		}
 	}
 
 	if scopesRequestedRaw, found := dataportenSettings["scopes_requested"]; !found {
 		return nil, fmt.Errorf("dataporten scopes missing")
 	} else {
 		scopesRequestedInterface := scopesRequestedRaw.([]interface{})
-		var scopes []string
-		for _, v := range scopesRequestedInterface {
-			switch v.(type) {
-			case string:
-				scopes = append(scopes, v.(string))
-			}
+		scopes, err := parseStringList(scopesRequestedInterface)
+		if err == nil {
+			clientSettings.ScopesRequested = scopes
+		} else {
+			return nil, err
 		}
-		clientSettings.ScopesRequested = scopes
 	}
 
 	if redirectURIRaw, found := dataportenSettings["redirect_uri"]; !found {
 		return nil, fmt.Errorf("dataporten redirect uri missing")
 	} else {
 		redirectURIInterface := redirectURIRaw.([]interface{})
-		var redirectURIs []string
-		for _, v := range redirectURIInterface {
-			switch v.(type) {
-			case string:
-				redirectURIs = append(redirectURIs, v.(string))
-			}
+		redirectURIs, err := parseStringList(redirectURIInterface)
+		if err == nil {
+			clientSettings.RedirectURI = redirectURIs
+		} else {
+			return nil, err
 		}
-		clientSettings.RedirectURI = redirectURIs
 	}
 
 	return clientSettings, nil
