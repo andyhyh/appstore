@@ -23,7 +23,7 @@
   <script>
     'use strict';
     var myTextArea = document.getElementById("value-source");
-    var myCodeMirror = CodeMirror.fromTextArea(myTextArea, {lineNumbers: true, mode: "yaml"});
+    var myCodeMirror = CodeMirror.fromTextArea(myTextArea, {lineNumbers: true, mode: "yaml", tabSize: 2});
     function installPackage(event) {
       event.preventDefault();
       var packageVersion = document.getElementById("packageVersion").innerHTML;
