@@ -53,6 +53,8 @@ func makePackageDetailHandler(settings *helm_env.EnvSettings, templates map[stri
 		if res != nil {
 			valuesRaw = res.GetValues().GetRaw()
 			metadata = res.GetMetadata()
+		} else {
+			status = http.StatusNotFound
 		}
 
 		formattedRes := struct {
