@@ -48,11 +48,17 @@ func makePackageDetailHandler(settings *helm_env.EnvSettings, templates map[stri
 		if err != nil {
 			status = http.StatusInternalServerError
 		}
+		var valuesRaw string
+		var metadata *chart.Metadata
+		if res != nil {
+			valuesRaw = res.GetValues().GetRaw()
+			metadata = res.GetMetadata()
+		}
 
 		formattedRes := struct {
 			Package *chart.Metadata
 			Values  string
-		}{res.Metadata, res.GetValues().GetRaw()}
+		}{metadata, valuesRaw}
 		returnHTML(w, "package.html", templates, formattedRes, err, status)
 	}
 }
