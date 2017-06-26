@@ -49,7 +49,7 @@ func main() {
 	}
 	baseRouter.Mount("/", dashboard.CreateDashboardRouter(settings, templates))
 	baseRouter.Get("/healthz", healthzHandler)
-
+	baseRouter.FileServer("/static/", http.Dir("ui/static"))
 	log.SetLevel(log.DebugLevel)
 	log.SetOutput(os.Stderr)
 	log.Debug("Starting server on port ", *port)
