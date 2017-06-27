@@ -25,9 +25,9 @@ func TestPackageIndexHandler(t *testing.T) {
 
 func TestPackageSearchHandler(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/{query}", makeSearchForPackagesHandler(helmutil.MockSettings))
+	r.Get("/", makeListAllPackagesHandler(helmutil.MockSettings))
 
-	resp, body := handlerutil.TestHandler(t, r, "GET", "/test", nil)
+	resp, body := handlerutil.TestHandler(t, r, "GET", "/?query=test", nil)
 	handlerutil.CheckStatus(resp, http.StatusOK, t)
 	var results []*search.Result
 	err := json.NewDecoder(body).Decode(&results)

@@ -93,16 +93,6 @@ func makePackageUserValuesHandler(settings *helm_env.EnvSettings) http.HandlerFu
 	}
 }
 
-func makeSearchForPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		logger := logger.MakeAPILogger(r)
-		query := chi.URLParam(r, "searchQuery")
-		status, err, res := chartSearchHandler(query, settings, logger)
-
-		returnJSON(w, r, res, err, status)
-	}
-}
-
 func AllPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, [][]*search.Result) {
 	results, err := app_search.GetAllCharts(settings, logger)
 
@@ -118,9 +108,14 @@ func AllPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (i
 func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
-		status, err, res := AllPackagesHandler(settings, apiReqLogger)
-
-		returnJSON(w, r, res, err, status)
+		query := r.URL.Query().Get("query")
+		if query == "" {
+			status, err, res := AllPackagesHandler(settings, apiReqLogger)
+			returnJSON(w, r, res, err, status)
+		} else {
+			status, err, res := chartSearchHandler(query, settings, apiReqLogger)
+			returnJSON(w, r, res, err, status)
+		}
 	}
 }
 
