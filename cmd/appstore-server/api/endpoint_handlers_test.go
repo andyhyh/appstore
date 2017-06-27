@@ -25,7 +25,7 @@ func TestPackageIndexHandler(t *testing.T) {
 
 func TestPackageSearchHandler(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:query", makeSearchForPackagesHandler(helmutil.MockSettings))
+	r.Get("/{query}", makeSearchForPackagesHandler(helmutil.MockSettings))
 
 	resp, body := handlerutil.TestHandler(t, r, "GET", "/test", nil)
 	handlerutil.CheckStatus(resp, http.StatusOK, t)

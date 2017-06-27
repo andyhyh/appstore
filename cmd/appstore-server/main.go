@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"strings"
 
 	"github.com/uninett/appstore/cmd/appstore-server/api"
 	"github.com/uninett/appstore/cmd/appstore-server/dashboard"
@@ -74,13 +75,35 @@ func main() {
 	}
 	baseRouter.Mount("/", dashboard.CreateDashboardRouter(settings, templates))
 	baseRouter.Get("/healthz", healthzHandler)
-	baseRouter.FileServer("/static/", http.Dir("ui/static"))
+
+	FileServer(baseRouter, "/static", http.Dir("ui/static"))
+
 	log.SetLevel(log.DebugLevel)
 	log.SetOutput(os.Stderr)
 	log.Debug("Starting server on port ", *port)
 	log.Debug("Tiller host: ", settings.TillerHost)
 	startTime = time.Now()
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), baseRouter))
+}
+
+// FileServer conveniently sets up a http.FileServer handler to serve
+// static files from a http.FileSystem.
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit URL parameters.")
+	}
+
+	fs := http.StripPrefix(path, http.FileServer(root))
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fs.ServeHTTP(w, r)
+	}))
 }
 
 func ensureDirectories(home helmpath.Home) error {

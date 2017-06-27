@@ -1,5 +1,5 @@
-hash: 6e5ad1d602fba4d176f61e96a2fbda24a90f1b1563c055a4239ba4f44e1713ba
-updated: 2017-06-24T20:01:55.997254444+02:00
+hash: 44c6e82acbd12446af4b8371e81c2e33033d7d4c296126d42a67d7ea9311d6fc
+updated: 2017-06-27T16:13:53.882444+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -94,6 +94,8 @@ imports:
   version: 42004b9f322246749dd73ad71008b1f3160c0052
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
+- name: github.com/go-chi/chi
+  version: 18d990c0d1c023b05a3652d322ae36d8bdb62e07
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -160,7 +162,7 @@ imports:
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
 - name: github.com/pressly/chi
-  version: e6033ea75479391a4bce3918fc119cad31e1cb30
+  version: 967844826e58cf31213a7dfb82455d242ad85101
   subpackages:
   - middleware
   - render
@@ -214,7 +216,7 @@ imports:
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: 8f0908ab3b2457e2e15403d3697c9ef5cb4b57a9
+  version: 9ccfe848b9db8435a24c424abbc07a921adf1df5
   subpackages:
   - unix
 - name: golang.org/x/text
@@ -264,7 +266,7 @@ imports:
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/yaml.v2
-  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
+  version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
 - name: k8s.io/apimachinery
   version: fbd6803372f831e58b86c78d07421637a64ad768
   subpackages:
