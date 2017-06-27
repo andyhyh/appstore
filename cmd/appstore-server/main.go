@@ -41,9 +41,9 @@ var (
 const version string = "v1"
 
 func main() {
-	debug := flag.Bool("debug", false, "Enable debug about")
+	debug := flag.Bool("debug", false, "Enable debug output")
 	port := flag.Int("port", 8080, "The port to use when hosting the server")
-	tillerHost := flag.String("host", os.Getenv(helm_env.HostEnvVar), "Enable debug about")
+	tillerHost := flag.String("host", os.Getenv(helm_env.HostEnvVar), "Address of tiller. Defaults to $HELM_HOST")
 	flag.Parse()
 
 	settings := helmutil.InitHelmSettings(*debug, *tillerHost)
