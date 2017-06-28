@@ -27,6 +27,7 @@ func createReleaseRouter(settings *helm_env.EnvSettings) http.Handler {
 	r.Get("/", makeReleaseOverviewHandler(settings))
 	r.Post("/", makeInstallPackageHandler(settings))
 	r.Get("/{releaseName}/status", makeReleaseStatusHandler(settings))
+	r.Delete("/{releaseName}", makeDeleteReleaseHandler(settings))
 	return r
 }
 

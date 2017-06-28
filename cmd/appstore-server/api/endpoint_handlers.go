@@ -93,6 +93,30 @@ func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 	}
 }
 
+func deleteReleaseHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+	if releaseName == "" {
+		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
+	}
+	client := helmutil.InitHelmClient(settings)
+	status, err := client.DeleteRelease(releaseName)
+	logger.Debugf("Attemping to delete: %s", releaseName)
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
+
+	return http.StatusOK, err, status
+}
+
+func makeDeleteReleaseHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		apiReqLogger := logger.MakeAPILogger(r)
+		releaseName := chi.URLParam(r, "releaseName")
+		status, err, res := deleteReleaseHandler(releaseName, settings, apiReqLogger)
+
+		returnJSON(w, r, res, err, status)
+	}
+}
+
 func releaseStatusHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if releaseName == "" {
 		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
