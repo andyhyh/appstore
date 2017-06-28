@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/uninett/appstore/cmd/appstore-server/api"
 	"github.com/uninett/appstore/cmd/appstore-server/dashboard"
@@ -19,9 +19,9 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
+	"k8s.io/helm/pkg/getter"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/helm/helmpath"
-	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/repo"
 )
 
