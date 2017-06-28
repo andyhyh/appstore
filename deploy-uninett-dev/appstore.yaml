@@ -1,0 +1,87 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: appstore
+  namespace: appstore-dep
+  labels:
+    app: appstore
+    group: tiller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: appstore
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      labels:
+        app: appstore
+        group: tiller
+    spec:
+      containers:
+      - name: appstore
+        image: quay.io/uninett/k8s-appstore-backend:latest
+        args: ['-host=tiller-service.appstore-dep.svc.cluster.local:44134']
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8080
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: appstore-dep
+  labels:
+    app: appstore
+    group: tiller
+  name: appstore
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: appstore
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: appstore-dep
+  name: appstore
+  annotations:
+    kubernetes.io/tls-acme: "true" 
+    kubernetes.io/ingress.class: "nginx"
+    ingress.kubernetes.io/auth-type: basic
+    ingress.kubernetes.io/auth-secret: appstore-gatekeeper
+spec:
+  tls:
+    - hosts:
+      - appstore.appstore-dep.ioudaas.no
+      secretName: appstore-lol-tls
+  rules:
+  - host: appstore.appstore-dep.ioudaas.no
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: appstore
+          servicePort: 8080
+
+---
+apiVersion: extensions/v1beta1
+kind: NetworkPolicy
+metadata:
+  namespace: appstore-dep
+  name: appstore
+spec:
+  podSelector:
+    matchLabels:
+      app: appstore
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: kube-ingress
+      ports:
+        - protocol: TCP
+          port: 8080

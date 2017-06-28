@@ -1,0 +1,59 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: tiller
+  namespace: appstore-dep
+  labels:
+    app: tiller
+    group: tiller
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tiller
+        group: tiller
+    spec:
+      containers:
+      - name: tiller
+        image: gcr.io/kubernetes-helm/tiller:v2.5.0
+        ports:
+          - containerPort: 44134
+        env:
+          - name: GET_HOSTS_FROM
+            value: dns
+      serviceAccountName: tiller-service
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: tiller-service
+  namespace: appstore-dep
+  labels:
+    group: tiller
+spec:
+  selector:
+    app: tiller
+  ports:
+    - protocol: TCP
+      port: 44134
+
+---
+apiVersion: extensions/v1beta1
+kind: NetworkPolicy
+metadata:
+  name: tiller-policy
+  namespace: appstore-dep
+spec:
+  podSelector:
+    matchLabels:
+      group: tiller
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              group: tiller
+      ports:
+        - protocol: TCP 
+          port: 44134
