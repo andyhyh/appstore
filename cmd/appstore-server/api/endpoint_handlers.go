@@ -13,6 +13,7 @@ import (
 	"github.com/uninett/appstore/pkg/dataporten"
 	"github.com/uninett/appstore/pkg/install"
 	"github.com/uninett/appstore/pkg/logger"
+	"github.com/uninett/appstore/pkg/releaseutil"
 
 	app_search "github.com/uninett/appstore/pkg/search"
 	"k8s.io/helm/cmd/helm/search"
@@ -119,27 +120,22 @@ func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 	}
 }
 
-func installPackageHandler(packageName string, version string, chartSettingsRaw io.ReadCloser, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
-	if packageName == "" {
-		return http.StatusNotFound, fmt.Errorf("package not found"), nil
-	}
-	logger.Debug("Attempting to install package: " + packageName)
-
-	chartSettings := make(map[string]interface{})
-	decoder := json.NewDecoder(chartSettingsRaw)
-	err := decoder.Decode(&chartSettings)
+func installPackageHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+	var releaseSettings *releaseutil.ReleaseSettings
+	decoder := json.NewDecoder(releaseSettingsRaw)
+	err := decoder.Decode(&releaseSettings)
 
 	if err != nil {
-		logger.Debugf("Error decoding the POSTed JSON: '%s, %s'", chartSettingsRaw, err.Error())
+		logger.Debugf("Error decoding the POSTed JSON: '%s, %s'", releaseSettingsRaw, err.Error())
 		return http.StatusBadRequest, fmt.Errorf("invalid json"), nil
 	}
 
-	status, err, chartRequested := PackageDetailHandler(packageName, version, settings, logger)
+	status, err, chartRequested := PackageDetailHandler(releaseSettings.Package, releaseSettings.Version, settings, logger)
 	if status != http.StatusOK {
 		return status, err, nil
 	}
 
-	dataportenSettings, err := dataporten.MaybeGetSettings(chartSettings)
+	dataportenSettings, err := dataporten.MaybeGetSettings(releaseSettings.Values)
 
 	if dataportenSettings != nil && err == nil {
 		logger.Debugf("Attempting to register dataporten application %s", dataportenSettings.Name)
@@ -156,10 +152,10 @@ func installPackageHandler(packageName string, version string, chartSettingsRaw 
 		logger.Debugf("Successfully registered application %s", dataportenSettings.Name)
 	}
 
-	res, err := install.InstallChart(chartRequested, chartSettings, settings, logger)
+	res, err := install.InstallChart(chartRequested, releaseSettings.Values, settings, logger)
 
 	if err == nil {
-		return http.StatusOK, nil, res
+		return http.StatusOK, nil, releaseutil.Release{Id: res.Name, Owner: "", ReleaseSettings: releaseSettings}
 	} else {
 		return http.StatusInternalServerError, err, nil
 	}
@@ -168,9 +164,7 @@ func installPackageHandler(packageName string, version string, chartSettingsRaw 
 func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
-		packageName := chi.URLParam(r, "packageName")
-		version := chi.URLParam(r, "version")
-		status, err, res := installPackageHandler(packageName, version, r.Body, settings, apiReqLogger)
+		status, err, res := installPackageHandler(r.Body, settings, apiReqLogger)
 
 		returnJSON(w, r, res, err, status)
 	}

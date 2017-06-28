@@ -22,7 +22,7 @@ import (
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/kube"
 	"k8s.io/helm/pkg/proto/hapi/chart"
-	"k8s.io/helm/pkg/proto/hapi/services"
+	"k8s.io/helm/pkg/proto/hapi/release"
 )
 
 // Merges source and destination map, preferring values from the source map
@@ -203,7 +203,7 @@ func GetValsByKey(desiredKey string, rawVals string, logger *logrus.Entry) (map[
 	return desiredVals, nil
 }
 
-func InstallChart(chartRequested *chart.Chart, chartSettings map[string]interface{}, settings *helm_env.EnvSettings, logger *logrus.Entry) (*services.GetReleaseStatusResponse, error) {
+func InstallChart(chartRequested *chart.Chart, chartSettings map[string]interface{}, settings *helm_env.EnvSettings, logger *logrus.Entry) (*release.Release, error) {
 	rawVals, err := createValuesYaml(chartSettings)
 	if err != nil {
 		return nil, err
@@ -259,11 +259,5 @@ func InstallChart(chartRequested *chart.Chart, chartSettings map[string]interfac
 		return nil, fmt.Errorf("no release returned")
 	}
 
-	// Print the status like status command does
-	status, err := client.ReleaseStatus(rel.Name)
-	if err != nil && dryRun == false {
-		return nil, err
-	}
-
-	return status, nil
+	return rel, nil
 }
