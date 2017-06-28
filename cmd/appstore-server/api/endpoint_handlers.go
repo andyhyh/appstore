@@ -10,17 +10,20 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
+
 	"github.com/uninett/appstore/pkg/dataporten"
 	"github.com/uninett/appstore/pkg/helmutil"
 	"github.com/uninett/appstore/pkg/install"
 	"github.com/uninett/appstore/pkg/logger"
 	"github.com/uninett/appstore/pkg/releaseutil"
-
 	app_search "github.com/uninett/appstore/pkg/search"
+	"github.com/uninett/appstore/pkg/status"
+
 	"k8s.io/helm/cmd/helm/search"
 	"k8s.io/helm/pkg/chartutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/chart"
+	"k8s.io/helm/pkg/proto/hapi/release"
 )
 
 type ErrorJson struct {
@@ -62,37 +65,6 @@ func chartSearchHandler(query string, settings *helm_env.EnvSettings, logger *lo
 	}
 
 	return http.StatusOK, nil, results
-}
-
-func packageUserValuesHandler(packageName string, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
-
-	status, err, res := PackageDetailHandler(packageName, version, settings, logger)
-
-	if status != http.StatusOK {
-		return status, err, nil
-	}
-
-	userVals, err := install.GetValsByKey("persistence", res.GetValues().GetRaw(), logger)
-	return http.StatusOK, err, userVals
-}
-
-func makePackageUserValuesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		logger := logger.MakeAPILogger(r)
-		packageName := chi.URLParam(r, "packageName")
-		packageVersion := chi.URLParam(r, "version")
-
-		status, err, res := packageUserValuesHandler(packageName, packageVersion, settings, logger)
-		jsonString, err := json.Marshal(res)
-
-		if err != nil {
-			logger.Warn(err)
-		} else {
-			logger.Infof("%s", jsonString)
-		}
-
-		returnJSON(w, r, res, err, status)
-	}
 }
 
 func AllPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, [][]*search.Result) {
@@ -190,6 +162,24 @@ func makeInstallPackageHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
 		status, err, res := installPackageHandler(r.Body, settings, apiReqLogger)
+
+		returnJSON(w, r, res, err, status)
+	}
+}
+
+func ReleaseOverviewHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, []*release.Release) {
+	res, err := status.GetAllReleases(settings, logger)
+
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
+	return http.StatusOK, nil, res
+}
+
+func makeReleaseOverviewHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		apiReqLogger := logger.MakeAPILogger(r)
+		status, err, res := ReleaseOverviewHandler(settings, apiReqLogger)
 
 		returnJSON(w, r, res, err, status)
 	}

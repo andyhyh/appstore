@@ -14,7 +14,7 @@ func CreateDashboardRouter(settings *helm_env.EnvSettings, templates map[string]
 	baseDashboardRouter.Route("/", func(baseDashboardRouter chi.Router) {
 		baseDashboardRouter.Get("/", makePackageIndexHandler(settings, templates))
 		baseDashboardRouter.Get("/package/{packageName}/{version}", makePackageDetailHandler(settings, templates))
-		baseDashboardRouter.Get("/releases", makeReleaseOverviewHandle(settings, templates))
+		baseDashboardRouter.Get("/releases", makeReleaseOverviewHandler(settings, templates))
 	})
 
 	return baseDashboardRouter

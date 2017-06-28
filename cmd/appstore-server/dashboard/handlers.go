@@ -4,13 +4,10 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 
 	"github.com/uninett/appstore/cmd/appstore-server/api"
-	//"github.com/uninett/appstore/pkg/install"
 	"github.com/uninett/appstore/pkg/logger"
-	"github.com/uninett/appstore/pkg/status"
 	"github.com/uninett/appstore/pkg/templateutil"
 
 	helm_search "k8s.io/helm/cmd/helm/search"
@@ -65,19 +62,10 @@ func makePackageDetailHandler(settings *helm_env.EnvSettings, templates map[stri
 	}
 }
 
-func releaseOverviewHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, []*release.Release) {
-	res, err := status.GetAllReleases(settings, logger)
-
-	if err != nil {
-		return http.StatusInternalServerError, err, nil
-	}
-	return http.StatusOK, nil, res
-}
-
-func makeReleaseOverviewHandle(settings *helm_env.EnvSettings, templates map[string]*template.Template) http.HandlerFunc {
+func makeReleaseOverviewHandler(settings *helm_env.EnvSettings, templates map[string]*template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
-		status, err, res := releaseOverviewHandler(settings, apiReqLogger)
+		status, err, res := api.ReleaseOverviewHandler(settings, apiReqLogger)
 
 		returnHTML(w, "releases.html", templates, struct{ Results []*release.Release }{res}, err, status)
 	}

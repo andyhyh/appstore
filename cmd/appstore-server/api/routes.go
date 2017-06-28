@@ -24,6 +24,7 @@ func createPackagesRouter(settings *helm_env.EnvSettings) http.Handler {
 
 func createReleaseRouter(settings *helm_env.EnvSettings) http.Handler {
 	r := chi.NewRouter()
+	r.Get("/", makeReleaseOverviewHandler(settings))
 	r.Post("/", makeInstallPackageHandler(settings))
 	r.Get("/{releaseName}/status", makeReleaseStatusHandler(settings))
 	return r
