@@ -11,6 +11,7 @@ import (
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/render"
 	"github.com/uninett/appstore/pkg/dataporten"
+	"github.com/uninett/appstore/pkg/helmutil"
 	"github.com/uninett/appstore/pkg/install"
 	"github.com/uninett/appstore/pkg/logger"
 	"github.com/uninett/appstore/pkg/releaseutil"
@@ -117,6 +118,30 @@ func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 			status, err, res := chartSearchHandler(query, settings, apiReqLogger)
 			returnJSON(w, r, res, err, status)
 		}
+	}
+}
+
+func releaseStatusHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+	if releaseName == "" {
+		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
+	}
+	client := helmutil.InitHelmClient(settings)
+	status, err := client.ReleaseStatus(releaseName)
+	logger.Debugf("Attemping to fetch the status of: %s", releaseName)
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
+
+	return http.StatusOK, err, status
+}
+
+func makeReleaseStatusHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		apiReqLogger := logger.MakeAPILogger(r)
+		releaseName := chi.URLParam(r, "releaseName")
+		status, err, res := releaseStatusHandler(releaseName, settings, apiReqLogger)
+
+		returnJSON(w, r, res, err, status)
 	}
 }
 
