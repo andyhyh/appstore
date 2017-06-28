@@ -33,6 +33,36 @@ Each pacakge should contain information about:
 Filter on a query string.
 
 
+### Get available namespaces
+
+
+`GET /namespaces`
+
+The user needs to be authenticated. Returns a list of namespaces that the enduser is allowed to deploy to.
+
+For now, the namespaces setup could be implemented as a static configuration file at the backend, including a list of group to namespace mappings. This endpoint lists the configuration filtered with the ones that the authenticated user is allowed to based upon the groups the user is member of.
+
+Response similar to this:
+
+```
+[
+  {
+    "id": "researchlab",
+    "name": "Research Lab prosjektet",
+    "groups": [
+      "fc:orgunit:systemavdelingen", "fc:adhoc:bcca03b7-8193-4692-91e0-3c0715756a26"
+    ]
+  },
+  {
+    "id": "uninett-experimental",
+    "name": "Experimental services",
+    "groups": [
+      "fc:orgunit:systemavdelingen"
+    ]
+  }
+]
+```
+
 
 ### Install an application
 
@@ -40,13 +70,13 @@ Filter on a query string.
 
 ```
 {
-  "application": "wordpress",
-  "version": "4.1",
-  "namespace": "default",
-  "adminGroups": [
+  "repo": "researchlab",        # OPTIONAL
+  "package": "wordpress",       # REQUIRED
+  "version": "4.1",             # OPTIONAL
+  "namespace": "default",       # OPTIONAL
+  "adminGroups": [              # OPTIONAL
     "fc:uninett:avd:system"
   ],
-  "development": false,
   "values": {
     "name": "A nice blog about kubernetes",
     "host": "k8s-blog.lab.uninett-apps.no"
@@ -64,13 +94,13 @@ The response is identical to the accepted values of the input, in addition to th
 {
   "id": "blurry-green-cat",
   "owner": "d7e71800-549b-40ad-ae5c-d88891327231",
-  "application": "wordpress",
+  "repo": "researchlab",
+  "package": "wordpress",
   "version": "4.1",
   "namespace": "default",
   "adminGroups": [
     "fc:uninett:avd:system"
   ],
-  "development": false,
   "values": {
     "name": "A nice blog about kubernetes",
     "host": "k8s-blog.lab.uninett-apps.no"
