@@ -15,8 +15,6 @@ All these endpoints are public, unprotected.
 
 `GET /packages`
 
-
-
 List all packages. A JSON list.
 
 Each entry should contain info from repo.
@@ -24,13 +22,18 @@ Each entry should contain info from repo.
 Each pacakge should contain information about:
 
 * the package ID
-* the content charts.yaml
+* the source repo
+* the content `charts.yaml`
 * information about available versions
 
 
 `GET /packages?query=wordpress`
 
 Filter on a query string.
+
+`GET /packages?repo=researchlab`
+
+Filter for a specifc repo.
 
 
 ### Get available namespaces
