@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/uninett/appstore/cmd/appstore-server/handlerutil"
+	"github.com/UNINETT/appstore/cmd/appstore-server/handlerutil"
 )
 
 func TestHealthzHandler(t *testing.T) {

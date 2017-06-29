@@ -4,7 +4,7 @@ BINDIR := $(CURDIR)/bin
 
 .PHONY: build
 build:
-	GOBIN=$(BINDIR) ${GO_EXECUTABLE} install github.com/uninett/appstore/cmd/appstore-server
+	GOBIN=$(BINDIR) ${GO_EXECUTABLE} install github.com/UNINETT/appstore/cmd/appstore-server
 
 .PHONY: deps
 deps:

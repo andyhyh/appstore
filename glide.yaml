@@ -1,4 +1,4 @@
-package: github.com/uninett/appstore
+package: github.com/UNINETT/appstore
 import:
 - package: github.com/Masterminds/semver
   version: ~1.2.3

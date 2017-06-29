@@ -6,9 +6,9 @@ import (
 
 	"github.com/Sirupsen/logrus"
 
-	"github.com/uninett/appstore/pkg/install"
-	"github.com/uninett/appstore/pkg/logger"
-	app_search "github.com/uninett/appstore/pkg/search"
+	"github.com/UNINETT/appstore/pkg/install"
+	"github.com/UNINETT/appstore/pkg/logger"
+	app_search "github.com/UNINETT/appstore/pkg/search"
 
 	"k8s.io/helm/cmd/helm/search"
 	"k8s.io/helm/pkg/chartutil"

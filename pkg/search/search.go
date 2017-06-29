@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/Masterminds/semver"
 	"github.com/Sirupsen/logrus"
-	"github.com/uninett/appstore/pkg/debug"
+	"github.com/UNINETT/appstore/pkg/debug"
 	"time"
 
 	"k8s.io/helm/cmd/helm/search"

@@ -6,9 +6,9 @@ import (
 
 	"github.com/pressly/chi"
 
-	"github.com/uninett/appstore/cmd/appstore-server/api"
-	"github.com/uninett/appstore/pkg/logger"
-	"github.com/uninett/appstore/pkg/templateutil"
+	"github.com/UNINETT/appstore/cmd/appstore-server/api"
+	"github.com/UNINETT/appstore/pkg/logger"
+	"github.com/UNINETT/appstore/pkg/templateutil"
 
 	helm_search "k8s.io/helm/cmd/helm/search"
 	helm_env "k8s.io/helm/pkg/helm/environment"

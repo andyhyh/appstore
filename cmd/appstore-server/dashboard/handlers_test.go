@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/uninett/appstore/pkg/helmutil"
-	"github.com/uninett/appstore/pkg/templateutil"
+	"github.com/UNINETT/appstore/pkg/helmutil"
+	"github.com/UNINETT/appstore/pkg/templateutil"
 
-	"github.com/uninett/appstore/cmd/appstore-server/handlerutil"
+	"github.com/UNINETT/appstore/cmd/appstore-server/handlerutil"
 )
 
 func initTemplates(t *testing.T) map[string]*template.Template {

@@ -10,12 +10,12 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 
-	"github.com/uninett/appstore/pkg/dataporten"
-	"github.com/uninett/appstore/pkg/helmutil"
-	"github.com/uninett/appstore/pkg/install"
-	"github.com/uninett/appstore/pkg/logger"
-	"github.com/uninett/appstore/pkg/releaseutil"
-	"github.com/uninett/appstore/pkg/status"
+	"github.com/UNINETT/appstore/pkg/dataporten"
+	"github.com/UNINETT/appstore/pkg/helmutil"
+	"github.com/UNINETT/appstore/pkg/install"
+	"github.com/UNINETT/appstore/pkg/logger"
+	"github.com/UNINETT/appstore/pkg/releaseutil"
+	"github.com/UNINETT/appstore/pkg/status"
 
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"

@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/uninett/appstore/cmd/appstore-server/api"
-	"github.com/uninett/appstore/cmd/appstore-server/dashboard"
-	"github.com/uninett/appstore/pkg/helmutil"
-	"github.com/uninett/appstore/pkg/logger"
-	"github.com/uninett/appstore/pkg/templateutil"
+	"github.com/UNINETT/appstore/cmd/appstore-server/api"
+	"github.com/UNINETT/appstore/cmd/appstore-server/dashboard"
+	"github.com/UNINETT/appstore/pkg/helmutil"
+	"github.com/UNINETT/appstore/pkg/logger"
+	"github.com/UNINETT/appstore/pkg/templateutil"
 
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"

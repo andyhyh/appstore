@@ -19,7 +19,7 @@ package status
 import (
 	"fmt"
 	"github.com/Sirupsen/logrus"
-	"github.com/uninett/appstore/pkg/helmutil"
+	"github.com/UNINETT/appstore/pkg/helmutil"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 
 	"k8s.io/helm/pkg/helm"

@@ -7,8 +7,8 @@ import (
 
 	"github.com/pressly/chi"
 
-	"github.com/uninett/appstore/cmd/appstore-server/handlerutil"
-	"github.com/uninett/appstore/pkg/helmutil"
+	"github.com/UNINETT/appstore/cmd/appstore-server/handlerutil"
+	"github.com/UNINETT/appstore/pkg/helmutil"
 
 	"k8s.io/helm/cmd/helm/search"
 )
