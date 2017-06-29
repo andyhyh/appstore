@@ -10,7 +10,7 @@ before_install:
 - make deps build
 deploy:
   - provider: script
-    script: deploy.sh latest
+    script: sh $TRAVIS_BUILD_DIR/deploy.sh latest
     skip_cleanup: true
     on:
       branch: master
