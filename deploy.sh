@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/bash 
+set -euo pipefail
 TAG=$1
 
 echo "Building image with Tag: $TAG"
