@@ -12,8 +12,8 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/Sirupsen/logrus"
-	"github.com/ghodss/yaml"
 	"github.com/UNINETT/appstore/pkg/helmutil"
+	"github.com/ghodss/yaml"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 
 	"k8s.io/helm/pkg/chartutil"

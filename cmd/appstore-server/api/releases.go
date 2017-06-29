@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
@@ -17,6 +18,7 @@ import (
 	"github.com/UNINETT/appstore/pkg/releaseutil"
 	"github.com/UNINETT/appstore/pkg/status"
 
+	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
@@ -45,25 +47,41 @@ func makeDeleteReleaseHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 		returnJSON(w, r, res, err, status)
 	}
 }
+
 func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if releaseName == "" {
 		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
 	}
 	client := helmutil.InitHelmClient(settings)
 	logger.Debugf("Attemping to fetch the details of: %s", releaseName)
-	details, err := client.ReleaseContent(releaseName)
+	allReleaseDetails, err := client.ReleaseContent(releaseName)
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
 	}
 
-	return http.StatusOK, err, details
+	rel := allReleaseDetails.Release
+	// By default Tiller returns lone subkeys as "foo.bar: value", but
+	// when parsing the JSON POSTed by the user, we expect: {"foo":
+	// {"bar": "value"}} (i.e. nested objects), so we need to normalize
+	// the string returned by Tiller to a format which is parsed to the
+	// JSON format we expect.
+	normalizedConf := strings.Replace(rel.GetConfig().GetRaw(), ".", ":\n  ", -1)
+	valuesMap, err := chartutil.ReadValues([]byte(normalizedConf))
+
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
+
+	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: "", Version: rel.Chart.GetMetadata().Version, Namespace: rel.Namespace, Values: valuesMap}, Id: rel.Name}
+
+	return http.StatusOK, err, desiredDetails
 }
 
 func makeReleaseDetailHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
 		releaseName := chi.URLParam(r, "releaseName")
-		status, err, res := releaseStatusHandler(releaseName, settings, apiReqLogger)
+		status, err, res := releaseDetailHandler(releaseName, settings, apiReqLogger)
 
 		returnJSON(w, r, res, err, status)
 	}
