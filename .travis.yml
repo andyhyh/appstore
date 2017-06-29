@@ -1,0 +1,16 @@
+sudo: required
+language: go
+go:
+- 1.8.x
+services:
+- docker
+before_install:
+- mkdir -p $GOPATH/bin
+- curl https://glide.sh/get | sh
+- make deps
+deploy:
+  - provider: script
+    script: deploy.sh latest
+    skip_cleanup: true
+    on:
+      branch: master
