@@ -17,6 +17,7 @@ import (
 	"github.com/UNINETT/appstore/pkg/releaseutil"
 	"github.com/UNINETT/appstore/pkg/status"
 
+	"k8s.io/helm/pkg/helm"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
 )
@@ -133,6 +134,52 @@ func makeInstallReleaseHandler(settings *helm_env.EnvSettings) http.HandlerFunc 
 		apiReqLogger := logger.MakeAPILogger(r)
 		status, err, res := installReleaseHandler(r.Body, settings, apiReqLogger)
 
+		returnJSON(w, r, res, err, status)
+	}
+}
+
+// At the moment we only allow the user to up
+type UpgradeReleaseSettings struct {
+	Version string `json:"version"`
+	Package string `json:"package"`
+}
+
+func upgradeReleaseHandler(releaseName string, upgradeSettingsRaw io.ReadCloser, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+	var upgradeSettings UpgradeReleaseSettings
+	decoder := json.NewDecoder(upgradeSettingsRaw)
+	err := decoder.Decode(&upgradeSettings)
+
+	if err != nil {
+		logger.Debugf("Error decoding the POSTed JSON: '%s, %s'", upgradeSettingsRaw, err.Error())
+		return http.StatusBadRequest, fmt.Errorf("invalid json"), nil
+	}
+
+	if releaseName == "" {
+		return http.StatusBadRequest, fmt.Errorf("release not specified"), nil
+	}
+
+	client := helmutil.InitHelmClient(settings)
+
+	// TODO: Handle TLS related things:
+	chartPath, err := install.LocateChartPath(upgradeSettings.Package, upgradeSettings.Version, false, "", settings, logger)
+	if err != nil {
+		return http.StatusNotFound, err, nil
+	}
+
+	res, err := client.UpdateRelease(releaseName, chartPath, helm.ReuseValues(true), helm.UpdateValueOverrides(make([]byte, 0)))
+
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
+
+	return 200, nil, res
+}
+
+func makeUpgradeReleaseHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		apiReqLogger := logger.MakeAPILogger(r)
+		releaseName := chi.URLParam(r, "releaseName")
+		status, err, res := upgradeReleaseHandler(releaseName, r.Body, settings, apiReqLogger)
 		returnJSON(w, r, res, err, status)
 	}
 }
