@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
+	"regexp"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
@@ -65,7 +65,12 @@ func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, lo
 	// {"bar": "value"}} (i.e. nested objects), so we need to normalize
 	// the string returned by Tiller to a format which is parsed to the
 	// JSON format we expect.
-	normalizedConf := strings.Replace(rel.GetConfig().GetRaw(), ".", ":\n  ", -1)
+	re := regexp.MustCompile(`\s*\w*(\.\w+)+: `)
+	re2 := regexp.MustCompile(`(\.)`)
+
+	normalizedConf := re.ReplaceAllStringFunc(rel.GetConfig().GetRaw(), func(m string) string {
+		return re2.ReplaceAllString(m, ":\n  ")
+	})
 	valuesMap, err := chartutil.ReadValues([]byte(normalizedConf))
 
 	if err != nil {
