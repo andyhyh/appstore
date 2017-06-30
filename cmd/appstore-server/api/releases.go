@@ -150,6 +150,9 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 	}
 
 	dataportenSettings, err := dataporten.MaybeGetSettings(releaseSettings.Values)
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
 
 	var dataportenRes *dataporten.RegisterClientResult
 	if dataportenSettings != nil && err == nil {
