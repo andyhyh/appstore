@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/Sirupsen/logrus"
-	"github.com/m4rw3r/uuid"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/m4rw3r/uuid"
+
+	"github.com/UNINETT/appstore/pkg/parseutil"
 )
 
 // 'Client' is dataporten internal name for applications.
@@ -23,20 +26,6 @@ type ClientSettings struct {
 type RegisterClientResult struct {
 	ClientId string `json:"id"`
 	Owner    string `json:"owner"`
-}
-
-func parseStringList(maybeStringList []interface{}) ([]string, error) {
-	var strings []string
-	for _, v := range maybeStringList {
-		switch v.(type) {
-		case string:
-			strings = append(strings, v.(string))
-		default:
-			return nil, fmt.Errorf("not list of same type")
-		}
-	}
-
-	return strings, nil
 }
 
 const dataportenURL string = "https://clientadmin.dataporten-api.no/clients/"
@@ -75,7 +64,7 @@ func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) 
 		switch scopesRequestedRaw.(type) {
 		case []interface{}:
 			scopesRequestedInterface := scopesRequestedRaw.([]interface{})
-			scopes, err := parseStringList(scopesRequestedInterface)
+			scopes, err := parseutil.ParseStringList(scopesRequestedInterface)
 			if err == nil {
 				clientSettings.ScopesRequested = scopes
 			} else {
@@ -92,7 +81,7 @@ func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) 
 		switch redirectURIRaw.(type) {
 		case []interface{}:
 			redirectURIInterface := redirectURIRaw.([]interface{})
-			redirectURIs, err := parseStringList(redirectURIInterface)
+			redirectURIs, err := parseutil.ParseStringList(redirectURIInterface)
 			if err == nil {
 				clientSettings.RedirectURI = redirectURIs
 			} else {
