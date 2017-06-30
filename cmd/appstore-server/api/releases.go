@@ -151,6 +151,7 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 
 	dataportenSettings, err := dataporten.MaybeGetSettings(releaseSettings.Values)
 
+	var dataportenRes *dataporten.RegisterClientResult
 	if dataportenSettings != nil && err == nil {
 		logger.Debugf("Attempting to register dataporten application %s", dataportenSettings.Name)
 		regResp, err := dataporten.CreateClient(dataportenSettings, os.Getenv("TOKEN"), logger)
@@ -159,16 +160,20 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 			return regResp.StatusCode, fmt.Errorf(regResp.Status), nil
 		}
 
-		_, err = dataporten.ParseRegistrationResult(regResp.Body, logger)
+		dataportenRes, err = dataporten.ParseRegistrationResult(regResp.Body, logger)
 		if err != nil {
 			return http.StatusInternalServerError, err, nil
 		}
+
 		logger.Debugf("Successfully registered application %s", dataportenSettings.Name)
 	}
 
 	res, err := install.InstallChart(chartRequested, releaseSettings.Values, settings, logger)
 
 	if err == nil {
+		if dataportenRes != nil {
+			releaseSettings.Values["dataporten"] = map[string]string{"client_id": dataportenRes.ClientId, "owner": dataportenRes.Owner}
+		}
 		return http.StatusOK, nil, releaseutil.Release{Id: res.Name, Owner: "", ReleaseSettings: releaseSettings}
 	} else {
 		return http.StatusInternalServerError, err, nil

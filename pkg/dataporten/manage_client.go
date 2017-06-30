@@ -21,9 +21,8 @@ type ClientSettings struct {
 }
 
 type RegisterClientResult struct {
-	ClientSecret string `json:"client_secret"`
-	ClientId     string `json:"id"`
-	Owner        string `json:"owner"`
+	ClientId string `json:"id"`
+	Owner    string `json:"owner"`
 }
 
 func parseStringList(maybeStringList []interface{}) ([]string, error) {
@@ -68,24 +67,34 @@ func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) 
 	if scopesRequestedRaw, found := dataportenSettings["scopes_requested"]; !found {
 		return nil, fmt.Errorf("dataporten scopes missing")
 	} else {
-		scopesRequestedInterface := scopesRequestedRaw.([]interface{})
-		scopes, err := parseStringList(scopesRequestedInterface)
-		if err == nil {
-			clientSettings.ScopesRequested = scopes
-		} else {
-			return nil, err
+		switch scopesRequestedRaw.(type) {
+		case []interface{}:
+			scopesRequestedInterface := scopesRequestedRaw.([]interface{})
+			scopes, err := parseStringList(scopesRequestedInterface)
+			if err == nil {
+				clientSettings.ScopesRequested = scopes
+			} else {
+				return nil, err
+			}
+		default:
+			return nil, fmt.Errorf("scopes must be a list of strings")
 		}
 	}
 
 	if redirectURIRaw, found := dataportenSettings["redirect_uri"]; !found {
 		return nil, fmt.Errorf("dataporten redirect uri missing")
 	} else {
-		redirectURIInterface := redirectURIRaw.([]interface{})
-		redirectURIs, err := parseStringList(redirectURIInterface)
-		if err == nil {
-			clientSettings.RedirectURI = redirectURIs
-		} else {
-			return nil, err
+		switch redirectURIRaw.(type) {
+		case []interface{}:
+			redirectURIInterface := redirectURIRaw.([]interface{})
+			redirectURIs, err := parseStringList(redirectURIInterface)
+			if err == nil {
+				clientSettings.RedirectURI = redirectURIs
+			} else {
+				return nil, err
+			}
+		default:
+			return nil, fmt.Errorf("redirect URIs must be a list of strings")
 		}
 	}
 
