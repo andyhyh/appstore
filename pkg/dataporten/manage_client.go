@@ -47,13 +47,18 @@ func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) 
 		return nil, nil
 	}
 
-	dataportenSettings, found := secrets["dataporten"].(map[string]interface{})
+	dataportenSettings, found := secrets["dataporten"]
 	if !found {
 		return nil, nil
 	}
 
+	dataportenSettingsMap, ok := dataportenSettings.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("dataporten settings must be a object/map")
+	}
+
 	clientSettings := new(ClientSettings)
-	if clientName, found := dataportenSettings["name"]; !found {
+	if clientName, found := dataportenSettingsMap["name"]; !found {
 		return nil, fmt.Errorf("dataporten name missing")
 	} else {
 		switch clientName.(type) {
@@ -64,7 +69,7 @@ func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) 
 		}
 	}
 
-	if scopesRequestedRaw, found := dataportenSettings["scopes_requested"]; !found {
+	if scopesRequestedRaw, found := dataportenSettingsMap["scopes_requested"]; !found {
 		return nil, fmt.Errorf("dataporten scopes missing")
 	} else {
 		switch scopesRequestedRaw.(type) {
@@ -81,7 +86,7 @@ func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) 
 		}
 	}
 
-	if redirectURIRaw, found := dataportenSettings["redirect_uri"]; !found {
+	if redirectURIRaw, found := dataportenSettingsMap["redirect_uri"]; !found {
 		return nil, fmt.Errorf("dataporten redirect uri missing")
 	} else {
 		switch redirectURIRaw.(type) {
