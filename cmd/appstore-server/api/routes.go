@@ -16,6 +16,12 @@ func apiVersionCtx(version string) func(next http.Handler) http.Handler {
 	}
 }
 
+func createNamespacesRouter(settings *helm_env.EnvSettings) http.Handler {
+	r := chi.NewRouter()
+	r.Get("/", makeListNamespacesHandler(settings))
+	return r
+}
+
 func createPackagesRouter(settings *helm_env.EnvSettings) http.Handler {
 	r := chi.NewRouter()
 	r.Get("/", makeListPackagesHandler(settings))
@@ -40,6 +46,7 @@ func CreateAPIRouter(settings *helm_env.EnvSettings) http.Handler {
 		baseAPIrouter.Use(apiVersionCtx("v1"))
 		baseAPIrouter.Mount("/packages", createPackagesRouter(settings))
 		baseAPIrouter.Mount("/releases", createReleaseRouter(settings))
+		baseAPIrouter.Mount("/namespaces", createNamespacesRouter(settings))
 	})
 
 	return baseAPIrouter
