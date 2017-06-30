@@ -15,6 +15,7 @@ import (
 	"github.com/UNINETT/appstore/pkg/helmutil"
 	"github.com/UNINETT/appstore/pkg/install"
 	"github.com/UNINETT/appstore/pkg/logger"
+	"github.com/UNINETT/appstore/pkg/parseutil"
 	"github.com/UNINETT/appstore/pkg/releaseutil"
 	"github.com/UNINETT/appstore/pkg/status"
 
@@ -23,6 +24,8 @@ import (
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
 )
+
+const dataportenAppstoreSettingsKey = "DataportenAppstoreSettings"
 
 func deleteReleaseHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if releaseName == "" {
@@ -78,6 +81,15 @@ func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, lo
 	}
 
 	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: "", Version: rel.Chart.GetMetadata().Version, Namespace: rel.Namespace, Values: valuesMap}, Id: rel.Name}
+
+	if adminGroups, found := desiredDetails.Values[dataportenAppstoreSettingsKey]; found {
+		groups, err := parseutil.ParseStringList(adminGroups.([]interface{}))
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("admin groups are of wrong type"), nil
+		}
+		desiredDetails.AdminGroups = groups
+		delete(desiredDetails.Values, dataportenAppstoreSettingsKey)
+	}
 
 	return http.StatusOK, err, desiredDetails
 }
@@ -169,6 +181,10 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 		}
 
 		logger.Debugf("Successfully registered application %s", dataportenSettings.Name)
+	}
+
+	if adminGroups := releaseSettings.AdminGroups; len(adminGroups) > 0 {
+		releaseSettings.Values[dataportenAppstoreSettingsKey] = adminGroups
 	}
 
 	res, err := install.InstallChart(chartRequested, releaseSettings.Values, settings, logger)
