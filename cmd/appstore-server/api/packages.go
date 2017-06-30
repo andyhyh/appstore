@@ -35,8 +35,8 @@ func PackageDetailHandler(packageName string, version string, settings *helm_env
 	return http.StatusOK, nil, chartRequested
 }
 
-func chartSearchHandler(query string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
-	results, err := app_search.FindCharts(settings, query, "", logger)
+func chartSearchHandler(query string, repo string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+	results, err := app_search.FindCharts(settings, query, repo, "", logger)
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
 	}
@@ -56,16 +56,21 @@ func AllPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (i
 	return http.StatusOK, nil, packagesAllVersions
 }
 
-func makeListAllPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
+func makeListPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
 		query := r.URL.Query().Get("query")
-		if query == "" {
-			status, err, res := AllPackagesHandler(settings, apiReqLogger)
-			returnJSON(w, r, res, err, status)
+		repo := r.URL.Query().Get("repo")
+
+		var status int
+		var err error
+		var res interface{}
+		if query != "" || repo != "" {
+			status, err, res = chartSearchHandler(query, repo, settings, apiReqLogger)
 		} else {
-			status, err, res := chartSearchHandler(query, settings, apiReqLogger)
-			returnJSON(w, r, res, err, status)
+			status, err, res = AllPackagesHandler(settings, apiReqLogger)
 		}
+
+		returnJSON(w, r, res, err, status)
 	}
 }

@@ -41,6 +41,29 @@ func ensureIndex(settings *helm_env.EnvSettings, logger *logrus.Entry) error {
 	return nil
 }
 
+func buildRepoIndex(repoName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (*search.Index, error) {
+	rf, err := repo.LoadRepositoriesFile(settings.Home.RepositoryFile())
+	if err != nil {
+		return nil, err
+	}
+
+	i := search.NewIndex()
+	for _, re := range rf.Repositories {
+		n := re.Name
+		if n == repoName {
+			f := settings.Home.CacheIndex(n)
+			ind, err := repo.LoadIndexFile(f)
+			if err != nil {
+				logger.Warn("WARNING: Repo %q is corrupt or missing. Try 'helm repo update'.", n)
+				continue
+			}
+			i.AddRepo(n, ind, true)
+		}
+	}
+
+	return i, nil
+}
+
 func buildIndex(settings *helm_env.EnvSettings, logger *logrus.Entry) (*search.Index, error) {
 	// Load the repositories.yaml
 	rf, err := repo.LoadRepositoriesFile(settings.Home.RepositoryFile())

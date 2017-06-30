@@ -37,18 +37,27 @@ func GetAllCharts(settings *helm_env.EnvSettings, logger *logrus.Entry) ([]*sear
 	return res, nil
 }
 
-func FindCharts(settings *helm_env.EnvSettings, query string, version string, logger *logrus.Entry) ([]*search.Result, error) {
+func FindCharts(settings *helm_env.EnvSettings, query string, repo string, version string, logger *logrus.Entry) ([]*search.Result, error) {
 	t1 := time.Now()
-	err := ensureIndex(settings, logger)
+
+	var searchIndex *search.Index
+	var err error
+	if repo == "" {
+		err = ensureIndex(settings, logger)
+		searchIndex = index
+	} else {
+		searchIndex, err = buildRepoIndex(repo, settings, logger)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
 	var res []*search.Result
 	if len(query) == 0 {
-		res = index.All()
+		res = searchIndex.All()
 	} else {
-		res, err = index.Search(query, searchMaxScore, false)
+		res, err = searchIndex.Search(query, searchMaxScore, false)
 		if err != nil {
 			return nil, err
 		}
