@@ -1,7 +1,7 @@
 package dashboard
 
 import (
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
 	"html/template"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"net/http"

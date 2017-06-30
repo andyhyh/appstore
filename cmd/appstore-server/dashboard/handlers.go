@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
 
 	"github.com/UNINETT/appstore/cmd/appstore-server/api"
 	"github.com/UNINETT/appstore/pkg/logger"

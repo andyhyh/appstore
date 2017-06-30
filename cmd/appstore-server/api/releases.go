@@ -9,7 +9,7 @@ import (
 	"regexp"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
 
 	"github.com/UNINETT/appstore/pkg/dataporten"
 	"github.com/UNINETT/appstore/pkg/helmutil"

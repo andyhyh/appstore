@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
 
 	"github.com/UNINETT/appstore/cmd/appstore-server/handlerutil"
 	"github.com/UNINETT/appstore/pkg/helmutil"

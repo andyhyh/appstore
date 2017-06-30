@@ -14,8 +14,8 @@ import (
 	"github.com/UNINETT/appstore/pkg/logger"
 	"github.com/UNINETT/appstore/pkg/templateutil"
 
-	"github.com/pressly/chi"
-	"github.com/pressly/chi/middleware"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 
 	log "github.com/Sirupsen/logrus"
 

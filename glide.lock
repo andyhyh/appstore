@@ -1,5 +1,5 @@
-hash: 968b54950d3c52de999ec19e8bcefb8b06e359c4e40a63085702d89b93cf2442
-updated: 2017-06-29T09:40:01.727466932+02:00
+hash: f87c8b3ab407a5fa7c0028a2c31cde859cc2813aa85ea71f364bc3e9f90a5c87
+updated: 2017-06-30T09:04:18.302513899+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -95,7 +95,10 @@ imports:
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/go-chi/chi
-  version: 18d990c0d1c023b05a3652d322ae36d8bdb62e07
+  version: 967844826e58cf31213a7dfb82455d242ad85101
+  subpackages:
+  - middleware
+  - render
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -161,11 +164,6 @@ imports:
   version: ad45545899c7b13c020ea92b2072220eefad42b8
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
-- name: github.com/pressly/chi
-  version: 967844826e58cf31213a7dfb82455d242ad85101
-  subpackages:
-  - middleware
-  - render
 - name: github.com/PuerkitoBio/purell
   version: 8a290539e2e8629dbc4e6bad948158f790ec31f4
 - name: github.com/PuerkitoBio/urlesc

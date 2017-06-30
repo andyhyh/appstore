@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"net/http"
 )

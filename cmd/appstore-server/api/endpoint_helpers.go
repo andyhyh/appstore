@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/pressly/chi/render"
+	"github.com/go-chi/chi/render"
 )
 
 type ErrorJson struct {
