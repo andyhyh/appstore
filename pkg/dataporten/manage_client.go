@@ -14,6 +14,8 @@ import (
 	"github.com/UNINETT/appstore/pkg/parseutil"
 )
 
+const dataportenClientURL string = "https://clientadmin.dataporten-api.no/clients/"
+
 // 'Client' is dataporten internal name for applications.
 type ClientSettings struct {
 	Name            string   `json:"name"`
@@ -27,8 +29,6 @@ type RegisterClientResult struct {
 	ClientId string `json:"id"`
 	Owner    string `json:"owner"`
 }
-
-const dataportenURL string = "https://clientadmin.dataporten-api.no/clients/"
 
 func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) {
 	secrets, found := settings["secrets"].(map[string]interface{})
@@ -143,7 +143,7 @@ func CreateClient(cs *ClientSettings, token string, logger *logrus.Entry) (*http
 	}
 	logger.Debug("Preparing to register new dataporten client with settings: " + b.String())
 
-	req, err := initAuthorizedRequest("POST", dataportenURL, b, token)
+	req, err := initAuthorizedRequest("POST", dataportenClientURL, b, token)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func CreateClient(cs *ClientSettings, token string, logger *logrus.Entry) (*http
 }
 
 func DeleteClient(clientId string, token string, logger *logrus.Entry) (*http.Response, error) {
-	deleteUrl := dataportenURL + clientId
+	deleteUrl := dataportenClientURL + clientId
 	req, err := initAuthorizedRequest("DELETE", deleteUrl, nil, token)
 	if err != nil {
 		return nil, err
