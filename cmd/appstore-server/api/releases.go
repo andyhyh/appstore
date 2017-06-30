@@ -179,6 +179,10 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 		}
 		return http.StatusOK, nil, releaseutil.Release{Id: res.Name, Owner: "", ReleaseSettings: releaseSettings}
 	} else {
+		if dataportenRes != nil {
+			logger.Debugf("Attempting to delete dataporten client: %s", dataportenRes.ClientId)
+			_, _ = dataporten.DeleteClient(dataportenRes.ClientId, os.Getenv("TOKEN"), logger)
+		}
 		return http.StatusInternalServerError, err, nil
 	}
 }
