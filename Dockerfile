@@ -3,7 +3,6 @@ RUN apk add --update --no-cache ca-certificates
 
 WORKDIR /appstore
 COPY ./bin/appstore-server .
-COPY ./ui ./ui
 
 # If the binary was built without using musl, create a symlink to the
 # library that is expected in the binary. 
