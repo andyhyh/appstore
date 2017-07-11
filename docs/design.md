@@ -43,7 +43,7 @@ Filter for a specifc repo.
 
 The user needs to be authenticated. Returns a list of namespaces that the enduser is allowed to deploy to.
 
-For now, the namespaces setup could be implemented as a static configuration file at the backend, including a list of group to namespace mappings. This endpoint lists the configuration filtered with the ones that the authenticated user is allowed to based upon the groups the user is member of.
+For now, the namespaces setup could be implemented as a static configuration file at the backend, including a list of subject to namespace mappings. This endpoint lists the configuration filtered with the ones that the authenticated user is allowed to based upon the groups the user is member of.
 
 Response similar to this:
 
@@ -52,14 +52,14 @@ Response similar to this:
   {
     "id": "researchlab",
     "name": "Research Lab prosjektet",
-    "groups": [
+    "subjects": [
       "fc:orgunit:systemavdelingen", "fc:adhoc:bcca03b7-8193-4692-91e0-3c0715756a26"
     ]
   },
   {
     "id": "uninett-experimental",
     "name": "Experimental services",
-    "groups": [
+    "subjects": [
       "fc:orgunit:systemavdelingen"
     ]
   }

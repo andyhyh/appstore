@@ -1,10 +1,9 @@
 - id: researchlab
   description: "Research Lab prosjektet"
-  groups:
+  subjects:
     - fc:orgunit:systemavdelingen
-    - fc:adhoc:bcca03b7-8193-4692-91e0-3c0715756a26
 - id: ninett-experimental
   description: "Experimental services"
-  groups:
+  subjects:
     - fc:orgunit:systemavdelingen
     - fc:org:uninett.no:unit:AVD-U20

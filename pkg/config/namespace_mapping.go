@@ -7,12 +7,12 @@ import (
 )
 
 type NamespaceMapping struct {
-	NamespaceId   string   `json:"id"`
-	Description   string   `json:"description"`
-	AllowedGroups []string `json:"groups"`
+	NamespaceId     string   `json:"id"`
+	Description     string   `json:"description"`
+	AllowedSubjects []string `json:"subjects"`
 }
 
-func LoadGroupMappings(yamlFilepath string) ([]*NamespaceMapping, error) {
+func LoadNamespaceMappings(yamlFilepath string) ([]*NamespaceMapping, error) {
 	filename, _ := filepath.Abs(yamlFilepath)
 	yamlFile, err := ioutil.ReadFile(filename)
 

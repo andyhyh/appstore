@@ -13,6 +13,10 @@ import (
 	helm_env "k8s.io/helm/pkg/helm/environment"
 )
 
+const (
+	namespaceMappingFile = "subjects.yml"
+)
+
 func listNamespacesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	groupsResp, err := dataporten.RequestGroups(os.Getenv("TOKEN"), logger)
 	if err != nil {
@@ -23,14 +27,14 @@ func listNamespacesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry)
 		return http.StatusInternalServerError, err, nil
 	}
 
-	namespaceGroupMapping, err := config.LoadGroupMappings("./groups.yml")
+	namespaceSubjectMapping, err := config.LoadNamespaceMappings("./" + namespaceMappingFile)
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("gould not load group namespace to group mapping"), nil
+		return http.StatusInternalServerError, fmt.Errorf("could not load namespace to subject mapping"), nil
 	}
 
 	allowedNamespaces := make([]*config.NamespaceMapping, 0)
-	for _, n := range namespaceGroupMapping {
-		for _, ag := range n.AllowedGroups {
+	for _, n := range namespaceSubjectMapping {
+		for _, ag := range n.AllowedSubjects {
 			for _, ug := range userGroups {
 				if ag == ug.GroupId {
 					allowedNamespaces = append(allowedNamespaces, n)
