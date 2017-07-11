@@ -49,8 +49,6 @@ metadata:
 `
 var MockSettings = InitHelmSettings(false, "")
 
-var localRepositoryIndexFile = "index.yaml"
-
 type releaseOptions struct {
 	name       string
 	version    int32
