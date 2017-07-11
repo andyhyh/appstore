@@ -22,6 +22,9 @@ func listNamespacesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry)
 	if err != nil {
 		return groupsResp.StatusCode, err, nil
 	}
+	if groupsResp.StatusCode != 200 {
+		return groupsResp.StatusCode, fmt.Errorf(groupsResp.Status), nil
+	}
 	userGroups, err := dataporten.ParseGroupResult(groupsResp.Body, logger)
 	if err != nil {
 		return http.StatusInternalServerError, err, nil

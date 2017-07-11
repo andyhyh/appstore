@@ -20,7 +20,7 @@ func ParseGroupResult(respBody io.ReadCloser, logger *logrus.Entry) ([]*Dataport
 	err := json.NewDecoder(respBody).Decode(&groups)
 
 	if err != nil {
-		logger.Fatal("Dataporten returned invalid JSON " + err.Error())
+		logger.Debug("Dataporten returned invalid JSON " + err.Error())
 		return nil, err
 	}
 
