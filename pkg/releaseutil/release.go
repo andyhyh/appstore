@@ -10,7 +10,8 @@ type ReleaseSettings struct {
 }
 
 type Release struct {
-	Id    string `json:"id"`
-	Owner string `json:"owner"`
+	Id        string `json:"id"`
+	Owner     string `json:"owner"`
+	Namespace string `json:"namespace"`
 	*ReleaseSettings
 }

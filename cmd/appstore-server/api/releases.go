@@ -80,7 +80,7 @@ func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, lo
 		return http.StatusInternalServerError, err, nil
 	}
 
-	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: "", Version: rel.Chart.GetMetadata().Version, Namespace: rel.Namespace, Values: valuesMap}, Id: rel.Name}
+	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: "", Version: rel.Chart.GetMetadata().Version, Values: valuesMap}, Id: rel.Name, Namespace: rel.Namespace}
 
 	if adminGroups, found := desiredDetails.Values[dataportenAppstoreSettingsKey]; found {
 		groups, err := parseutil.ParseStringList(adminGroups.([]interface{}))
@@ -187,13 +187,14 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 		releaseSettings.Values[dataportenAppstoreSettingsKey] = adminGroups
 	}
 
-	res, err := install.InstallChart(chartRequested, releaseSettings.Values, settings, logger)
+	res, err := install.InstallChart(chartRequested, releaseSettings.Namespace, releaseSettings.Values, settings, logger)
 
 	if err == nil {
+		res := releaseutil.Release{Id: res.Name, Namespace: res.Namespace, ReleaseSettings: releaseSettings}
 		if dataportenRes != nil {
-			releaseSettings.Values["dataporten"] = map[string]string{"client_id": dataportenRes.ClientId, "owner": dataportenRes.Owner}
+			res.Owner = dataportenRes.Owner
 		}
-		return http.StatusOK, nil, releaseutil.Release{Id: res.Name, Owner: "", ReleaseSettings: releaseSettings}
+		return http.StatusOK, nil, res
 	} else {
 		if dataportenRes != nil {
 			logger.Debugf("Attempting to delete dataporten client: %s", dataportenRes.ClientId)

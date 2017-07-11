@@ -203,7 +203,7 @@ func GetValsByKey(desiredKey string, rawVals string, logger *logrus.Entry) (map[
 	return desiredVals, nil
 }
 
-func InstallChart(chartRequested *chart.Chart, chartSettings map[string]interface{}, settings *helm_env.EnvSettings, logger *logrus.Entry) (*release.Release, error) {
+func InstallChart(chartRequested *chart.Chart, namespace string, chartSettings map[string]interface{}, settings *helm_env.EnvSettings, logger *logrus.Entry) (*release.Release, error) {
 	rawVals, err := createValuesYaml(chartSettings)
 	if err != nil {
 		return nil, err
@@ -230,8 +230,6 @@ func InstallChart(chartRequested *chart.Chart, chartSettings map[string]interfac
 		logger.Warn("cannot load requirements: %v", err)
 		return nil, err
 	}
-
-	namespace := ""
 
 	if namespace == "" {
 		namespace = defaultNamespace()
