@@ -54,6 +54,19 @@ func makeDeleteReleaseHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	}
 }
 
+func getPackageMetaData(values map[string]interface{}) (map[string]interface{}, error) {
+	appstoreMetaDataRaw, found := values[appstoreMetaDataKey]
+	if !found {
+		return nil, fmt.Errorf("failed to get appstore package metadata")
+	}
+	appstoreMetaData, ok := appstoreMetaDataRaw.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("package metadata is invalid")
+	}
+
+	return appstoreMetaData, nil
+}
+
 func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if releaseName == "" {
 		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
@@ -78,13 +91,9 @@ func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, lo
 		return http.StatusInternalServerError, fmt.Errorf("failed to get chart metadata"), nil
 	}
 
-	appstoreMetaDataRaw, found := valuesMap[appstoreMetaDataKey]
-	if !found {
-		return http.StatusInternalServerError, fmt.Errorf("failed to get appstore package metadata"), nil
-	}
-	appstoreMetaData, ok := appstoreMetaDataRaw.(map[string]interface{})
-	if !ok {
-		return http.StatusInternalServerError, fmt.Errorf("package metadata is invalid"), nil
+	appstoreMetaData, err := getPackageMetaData(valuesMap)
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
 	}
 
 	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: appstoreMetaData["repo"].(string), Version: chartMetaData.Version, Values: valuesMap, Package: chartMetaData.Name}, Id: rel.Name, Namespace: rel.Namespace}
@@ -282,13 +291,9 @@ func upgradeReleaseHandler(releaseName string, upgradeSettingsRaw io.ReadCloser,
 		return http.StatusInternalServerError, fmt.Errorf("failed to get chart metadata"), nil
 	}
 
-	appstoreMetaDataRaw, found := valuesMap[appstoreMetaDataKey]
-	if !found {
-		return http.StatusInternalServerError, fmt.Errorf("failed to get appstore package metadata"), nil
-	}
-	appstoreMetaData, ok := appstoreMetaDataRaw.(map[string]interface{})
-	if !ok {
-		return http.StatusInternalServerError, fmt.Errorf("package metadata is invalid"), nil
+	appstoreMetaData, err := getPackageMetaData(valuesMap)
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
 	}
 
 	// TODO: Handle TLS related things:
