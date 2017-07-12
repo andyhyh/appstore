@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"regexp"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/ghodss/yaml"
 	"github.com/go-chi/chi"
 
 	"github.com/UNINETT/appstore/pkg/dataporten"
@@ -62,18 +62,8 @@ func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, lo
 	}
 
 	rel := allReleaseDetails.Release
-	// By default Tiller returns lone subkeys as "foo.bar: value", but
-	// when parsing the JSON POSTed by the user, we expect: {"foo":
-	// {"bar": "value"}} (i.e. nested objects), so we need to normalize
-	// the string returned by Tiller to a format which is parsed to the
-	// JSON format we expect.
-	re := regexp.MustCompile(`\s*\w*(\.\w+)+: `)
-	re2 := regexp.MustCompile(`(\.)`)
-
-	normalizedConf := re.ReplaceAllStringFunc(rel.GetConfig().GetRaw(), func(m string) string {
-		return re2.ReplaceAllString(m, ":\n  ")
-	})
-	valuesMap, err := chartutil.ReadValues([]byte(normalizedConf))
+	valuesMap := make(map[string]interface{})
+	err = yaml.Unmarshal([]byte(rel.GetConfig().GetRaw()), &valuesMap)
 
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
