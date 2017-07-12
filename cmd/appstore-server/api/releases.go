@@ -94,10 +94,36 @@ func makeReleaseDetailHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 }
 
 type releaseStatus struct {
-	LastDeployed string   `json:"last_deployed"`
-	Namespace    string   `json:"namespace"`
-	Status       string   `json:"status"`
-	Resources    []string `json:"resources"`
+	LastDeployed string                       `json:"last_deployed"`
+	Namespace    string                       `json:"namespace"`
+	Status       string                       `json:"status"`
+	Resources    map[string]map[string]string `json:"resources"`
+}
+
+func parseResources(resources []string) map[string]map[string]string {
+	parsedRes := make(map[string]map[string]string)
+	for _, r := range resources {
+		lines := strings.Split(strings.TrimSpace(r), "\n")
+		if len(lines) > 2 {
+			title := strings.TrimPrefix(lines[0], "==> ")
+			col_names := strings.Fields(lines[1])
+			for c_i, c_n := range col_names {
+				col_names[c_i] = strings.ToLower(c_n)
+			}
+
+			items := make(map[string]string)
+			for _, i := range lines[1:] {
+				cols := strings.Fields(i)
+				for c_i, c := range cols {
+					items[col_names[c_i]] = c
+				}
+			}
+
+			parsedRes[title] = items
+		}
+	}
+
+	return parsedRes
 }
 
 func releaseStatusHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
@@ -112,7 +138,8 @@ func releaseStatusHandler(releaseName string, settings *helm_env.EnvSettings, lo
 	}
 
 	info := rs.Info
-	return http.StatusOK, err, releaseStatus{ptypes.TimestampString(info.GetLastDeployed()), rs.Namespace, info.Status.Code.String(), strings.Split(info.Status.Resources, "\n\n")}
+	resources := parseResources(strings.Split(info.Status.Resources, "\n\n"))
+	return http.StatusOK, err, releaseStatus{ptypes.TimestampString(info.GetLastDeployed()), rs.Namespace, info.Status.Code.String(), resources}
 }
 
 func makeReleaseStatusHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
