@@ -77,9 +77,9 @@ func createValuesYaml(cs map[string]interface{}) ([]byte, error) {
 // - URL
 //
 // If 'verify' is true, this will attempt to also verify the chart.
-func LocateChartPath(name, version string, verify bool, keyring string, settings *helm_env.EnvSettings, logger *logrus.Entry) (string, error) {
+func LocateChartPath(name, repo, version string, verify bool, keyring string, settings *helm_env.EnvSettings, logger *logrus.Entry) (string, error) {
 	logger.Debugf("Trying to locate: %s, version: %s", name, version)
-	name = "stable/" + strings.TrimSpace(name)
+	name = repo + "/" + strings.TrimSpace(name)
 	version = strings.TrimSpace(version)
 	if fi, err := os.Stat(name); err == nil {
 		abs, err := filepath.Abs(name)

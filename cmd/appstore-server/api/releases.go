@@ -18,13 +18,15 @@ import (
 	"github.com/UNINETT/appstore/pkg/releaseutil"
 	"github.com/UNINETT/appstore/pkg/status"
 
-	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
 )
 
-const dataportenAppstoreSettingsKey = "DataportenAppstoreSettings"
+const (
+	dataportenAppstoreSettingsKey = "DataportenAppstoreSettings"
+	appstoreMetaDataKey           = "AppstoreMetaData"
+)
 
 func deleteReleaseHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if releaseName == "" {
@@ -74,7 +76,16 @@ func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, lo
 		return http.StatusInternalServerError, fmt.Errorf("failed to get chart metadata"), nil
 	}
 
-	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: "", Version: chartMetaData.Version, Values: valuesMap, Package: chartMetaData.Name}, Id: rel.Name, Namespace: rel.Namespace}
+	appstoreMetaDataRaw, found := valuesMap[appstoreMetaDataKey]
+	if !found {
+		return http.StatusInternalServerError, fmt.Errorf("failed to get appstore package metadata"), nil
+	}
+	appstoreMetaData, ok := appstoreMetaDataRaw.(map[string]interface{})
+	if !ok {
+		return http.StatusInternalServerError, fmt.Errorf("package metadata is invalid"), nil
+	}
+
+	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: appstoreMetaData["repo"].(string), Version: chartMetaData.Version, Values: valuesMap, Package: chartMetaData.Name}, Id: rel.Name, Namespace: rel.Namespace}
 
 	return http.StatusOK, err, desiredDetails
 }
@@ -132,7 +143,7 @@ func makeReleaseOverviewHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 }
 
 func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
-	var releaseSettings *releaseutil.ReleaseSettings
+	releaseSettings := &releaseutil.ReleaseSettings{Repo: "stable"}
 	decoder := json.NewDecoder(releaseSettingsRaw)
 	err := decoder.Decode(&releaseSettings)
 
@@ -141,7 +152,7 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 		return http.StatusBadRequest, fmt.Errorf("invalid json"), nil
 	}
 
-	status, err, chartRequested := PackageDetailHandler(releaseSettings.Package, releaseSettings.Version, settings, logger)
+	status, err, chartRequested := PackageDetailHandler(releaseSettings.Package, releaseSettings.Repo, releaseSettings.Version, settings, logger)
 	if status != http.StatusOK {
 		return status, err, nil
 	}
@@ -169,6 +180,7 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 		logger.Debugf("Successfully registered application %s", dataportenSettings.Name)
 	}
 
+	releaseSettings.Values[appstoreMetaDataKey] = PackageAppstoreMetaData{Repo: releaseSettings.Repo}
 	res, err := install.InstallChart(chartRequested, releaseSettings.Namespace, releaseSettings.Values, settings, logger)
 
 	if err == nil {
@@ -215,7 +227,7 @@ func upgradeReleaseHandler(releaseName string, upgradeSettingsRaw io.ReadCloser,
 	client := helmutil.InitHelmClient(settings)
 
 	// TODO: Handle TLS related things:
-	chartPath, err := install.LocateChartPath(upgradeSettings.Package, upgradeSettings.Version, false, "", settings, logger)
+	chartPath, err := install.LocateChartPath(upgradeSettings.Package, "stable", upgradeSettings.Version, false, "", settings, logger)
 	if err != nil {
 		return http.StatusNotFound, err, nil
 	}

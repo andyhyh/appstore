@@ -16,13 +16,17 @@ import (
 	"k8s.io/helm/pkg/proto/hapi/chart"
 )
 
-func PackageDetailHandler(packageName string, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, *chart.Chart) {
+type PackageAppstoreMetaData struct {
+	Repo string `json:"repo"`
+}
+
+func PackageDetailHandler(packageName, repo, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, *chart.Chart) {
 	if packageName == "" {
 		return http.StatusBadRequest, fmt.Errorf("no package specified"), nil
 	}
 
 	// TODO: Handle TLS related things:
-	chartPath, err := install.LocateChartPath(packageName, version, false, "", settings, logger)
+	chartPath, err := install.LocateChartPath(packageName, repo, version, false, "", settings, logger)
 	if err != nil {
 		return http.StatusNotFound, err, nil
 	}
