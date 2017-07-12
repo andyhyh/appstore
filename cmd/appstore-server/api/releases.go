@@ -15,7 +15,6 @@ import (
 	"github.com/UNINETT/appstore/pkg/helmutil"
 	"github.com/UNINETT/appstore/pkg/install"
 	"github.com/UNINETT/appstore/pkg/logger"
-	"github.com/UNINETT/appstore/pkg/parseutil"
 	"github.com/UNINETT/appstore/pkg/releaseutil"
 	"github.com/UNINETT/appstore/pkg/status"
 
@@ -80,16 +79,12 @@ func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, lo
 		return http.StatusInternalServerError, err, nil
 	}
 
-	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: "", Version: rel.Chart.GetMetadata().Version, Values: valuesMap}, Id: rel.Name, Namespace: rel.Namespace}
-
-	if adminGroups, found := desiredDetails.Values[dataportenAppstoreSettingsKey]; found {
-		groups, err := parseutil.ParseStringList(adminGroups.([]interface{}))
-		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("admin groups are of wrong type"), nil
-		}
-		desiredDetails.AdminGroups = groups
-		delete(desiredDetails.Values, dataportenAppstoreSettingsKey)
+	chartMetaData := rel.Chart.GetMetadata()
+	if chartMetaData == nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to get chart metadata"), nil
 	}
+
+	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: "", Version: chartMetaData.Version, Values: valuesMap, Package: chartMetaData.Name}, Id: rel.Name, Namespace: rel.Namespace}
 
 	return http.StatusOK, err, desiredDetails
 }
@@ -180,20 +175,14 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 			return http.StatusInternalServerError, err, nil
 		}
 
+		releaseSettings.Values[dataportenAppstoreSettingsKey] = dataportenRes
 		logger.Debugf("Successfully registered application %s", dataportenSettings.Name)
-	}
-
-	if adminGroups := releaseSettings.AdminGroups; len(adminGroups) > 0 {
-		releaseSettings.Values[dataportenAppstoreSettingsKey] = adminGroups
 	}
 
 	res, err := install.InstallChart(chartRequested, releaseSettings.Namespace, releaseSettings.Values, settings, logger)
 
 	if err == nil {
 		res := releaseutil.Release{Id: res.Name, Namespace: res.Namespace, ReleaseSettings: releaseSettings}
-		if dataportenRes != nil {
-			res.Owner = dataportenRes.Owner
-		}
 		return http.StatusOK, nil, res
 	} else {
 		if dataportenRes != nil {

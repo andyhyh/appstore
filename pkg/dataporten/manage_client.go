@@ -26,8 +26,14 @@ type ClientSettings struct {
 }
 
 type RegisterClientResult struct {
-	ClientId string `json:"id"`
-	Owner    string `json:"owner"`
+	ClientId string   `json:"id"`
+	Owner    string   `json:"owner"`
+	Admins   []string `json:"admins"`
+}
+
+type DataportenClient struct {
+	*RegisterClientResult
+	*ClientSettings
 }
 
 func MaybeGetSettings(settings map[string]interface{}) (*ClientSettings, error) {
