@@ -18,7 +18,6 @@ import (
 	"github.com/UNINETT/appstore/pkg/releaseutil"
 	"github.com/UNINETT/appstore/pkg/status"
 
-	"k8s.io/helm/pkg/helm"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
 )
@@ -260,7 +259,7 @@ func upgradeReleaseHandler(releaseName string, upgradeSettingsRaw io.ReadCloser,
 		return http.StatusNotFound, err, nil
 	}
 
-	res, err := client.UpdateRelease(releaseName, chartPath, helm.ReuseValues(true), helm.UpdateValueOverrides(make([]byte, 0)))
+	res, err := client.UpdateRelease(releaseName, chartPath)
 
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
