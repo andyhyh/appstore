@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	dataportenAppstoreSettingsKey = "DataportenAppstoreSettings"
-	appstoreMetaDataKey           = "AppstoreMetaData"
+	dataportenAppstoreSettingsKey = "dataporten_appstore_settings"
+	appstoreMetaDataKey           = "appstore_meta_data"
 )
 
 func deleteReleaseHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
