@@ -21,6 +21,7 @@ import (
 	"github.com/UNINETT/appstore/pkg/releaseutil"
 	"github.com/UNINETT/appstore/pkg/status"
 
+	"k8s.io/helm/pkg/helm"
 	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/proto/hapi/release"
 )
@@ -67,36 +68,51 @@ func getPackageMetaData(values map[string]interface{}) (map[string]interface{}, 
 	return appstoreMetaData, nil
 }
 
+type ReleaseDetails struct {
+	*release.Release
+	Values           map[string]interface{}
+	AppstoreMetaData map[string]interface{}
+}
+
+func getReleaseDetails(releaseName string, client helm.Interface, logger *logrus.Entry) (*ReleaseDetails, error) {
+	logger.Debugf("Attemping to fetch the details of: %s", releaseName)
+	allReleaseDetails, err := client.ReleaseContent(releaseName)
+	if err != nil {
+		return nil, err
+	}
+
+	rel := allReleaseDetails.Release
+	values := make(map[string]interface{})
+	err = yaml.Unmarshal([]byte(rel.GetConfig().GetRaw()), &values)
+	if err != nil {
+		return nil, err
+	}
+
+	appstoreMetaData, err := getPackageMetaData(values)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ReleaseDetails{rel, values, appstoreMetaData}, nil
+}
+
 func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if releaseName == "" {
 		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
 	}
 	client := helmutil.InitHelmClient(settings)
-	logger.Debugf("Attemping to fetch the details of: %s", releaseName)
-	allReleaseDetails, err := client.ReleaseContent(releaseName)
-	if err != nil {
-		return http.StatusInternalServerError, err, nil
-	}
-
-	rel := allReleaseDetails.Release
-	valuesMap := make(map[string]interface{})
-	err = yaml.Unmarshal([]byte(rel.GetConfig().GetRaw()), &valuesMap)
+	rd, err := getReleaseDetails(releaseName, client, logger)
 
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
 	}
 
-	chartMetaData := rel.Chart.GetMetadata()
+	chartMetaData := rd.Chart.GetMetadata()
 	if chartMetaData == nil {
 		return http.StatusInternalServerError, fmt.Errorf("failed to get chart metadata"), nil
 	}
 
-	appstoreMetaData, err := getPackageMetaData(valuesMap)
-	if err != nil {
-		return http.StatusInternalServerError, err, nil
-	}
-
-	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: appstoreMetaData["repo"].(string), Version: chartMetaData.Version, Values: valuesMap, Package: chartMetaData.Name}, Id: rel.Name, Namespace: rel.Namespace}
+	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: rd.AppstoreMetaData["repo"].(string), Version: chartMetaData.Version, Values: rd.Values, Package: chartMetaData.Name}, Id: rd.Name, Namespace: rd.Namespace}
 
 	return http.StatusOK, err, desiredDetails
 }
@@ -273,31 +289,19 @@ func upgradeReleaseHandler(releaseName string, upgradeSettingsRaw io.ReadCloser,
 
 	// We need some more information about the package (such as the repo
 	// and package) before we can attempt to upgrade it
-	allReleaseDetails, err := client.ReleaseContent(releaseName)
-	if err != nil {
-		return http.StatusInternalServerError, err, nil
-	}
-
-	rel := allReleaseDetails.Release
-	valuesMap := make(map[string]interface{})
-	err = yaml.Unmarshal([]byte(rel.GetConfig().GetRaw()), &valuesMap)
+	rd, err := getReleaseDetails(releaseName, client, logger)
 
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
 	}
 
-	chartMetaData := rel.Chart.GetMetadata()
+	chartMetaData := rd.Chart.GetMetadata()
 	if chartMetaData == nil {
 		return http.StatusInternalServerError, fmt.Errorf("failed to get chart metadata"), nil
 	}
 
-	appstoreMetaData, err := getPackageMetaData(valuesMap)
-	if err != nil {
-		return http.StatusInternalServerError, err, nil
-	}
-
 	// TODO: Handle TLS related things:
-	chartPath, err := install.LocateChartPath(chartMetaData.Name, appstoreMetaData["repo"].(string), upgradeSettings.Version, false, "", settings, logger)
+	chartPath, err := install.LocateChartPath(chartMetaData.Name, rd.AppstoreMetaData["repo"].(string), upgradeSettings.Version, false, "", settings, logger)
 	if err != nil {
 		return http.StatusNotFound, err, nil
 	}
