@@ -36,10 +36,32 @@ func deleteReleaseHandler(releaseName string, settings *helm_env.EnvSettings, lo
 		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
 	}
 	client := helmutil.InitHelmClient(settings)
+
+	rd, err := getReleaseDetails(releaseName, client, logger)
+	if err != nil {
+		return http.StatusInternalServerError, err, nil
+	}
+
 	status, err := client.DeleteRelease(releaseName)
 	logger.Debugf("Attemping to delete: %s", releaseName)
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
+	}
+	logger.Debugf("Successfully deleted: %s", releaseName)
+
+	if dpDetailsRaw, found := rd.Values[dataportenAppstoreSettingsKey]; found {
+		dpDetails := dpDetailsRaw.(map[string]interface{})
+		clientId := dpDetails["id"].(string)
+		logger.Debugf("Attempting to delete dataporten client: %s", clientId)
+
+		httpResp, err := dataporten.DeleteClient(clientId, os.Getenv("TOKEN"), logger)
+		if err != nil {
+			return http.StatusInternalServerError, err, nil
+		}
+		if httpResp.StatusCode != http.StatusOK {
+			return httpResp.StatusCode, fmt.Errorf(httpResp.Status), nil
+		}
+		logger.Debugf("Sucessfully dataporten client deleted: %s", clientId)
 	}
 
 	return http.StatusOK, err, status
