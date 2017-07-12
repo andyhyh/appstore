@@ -6,10 +6,13 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/ghodss/yaml"
 	"github.com/go-chi/chi"
+
+	"github.com/golang/protobuf/ptypes"
 
 	"github.com/UNINETT/appstore/pkg/dataporten"
 	"github.com/UNINETT/appstore/pkg/helmutil"
@@ -75,16 +78,7 @@ func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, lo
 		return http.StatusInternalServerError, fmt.Errorf("failed to get chart metadata"), nil
 	}
 
-	appstoreMetaDataRaw, found := valuesMap[appstoreMetaDataKey]
-	if !found {
-		return http.StatusInternalServerError, fmt.Errorf("failed to get appstore package metadata"), nil
-	}
-	appstoreMetaData, ok := appstoreMetaDataRaw.(map[string]interface{})
-	if !ok {
-		return http.StatusInternalServerError, fmt.Errorf("package metadata is invalid"), nil
-	}
-
-	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: appstoreMetaData["repo"].(string), Version: chartMetaData.Version, Values: valuesMap, Package: chartMetaData.Name}, Id: rel.Name, Namespace: rel.Namespace}
+	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: "", Version: chartMetaData.Version, Values: valuesMap, Package: chartMetaData.Name}, Id: rel.Name, Namespace: rel.Namespace}
 
 	return http.StatusOK, err, desiredDetails
 }
@@ -99,18 +93,26 @@ func makeReleaseDetailHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	}
 }
 
+type releaseStatus struct {
+	LastDeployed string   `json:"last_deployed"`
+	Namespace    string   `json:"namespace"`
+	Status       string   `json:"status"`
+	Resources    []string `json:"resources"`
+}
+
 func releaseStatusHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if releaseName == "" {
 		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
 	}
 	client := helmutil.InitHelmClient(settings)
 	logger.Debugf("Attemping to fetch the status of: %s", releaseName)
-	status, err := client.ReleaseStatus(releaseName)
+	rs, err := client.ReleaseStatus(releaseName)
 	if err != nil {
 		return http.StatusInternalServerError, err, nil
 	}
 
-	return http.StatusOK, err, status
+	info := rs.Info
+	return http.StatusOK, err, releaseStatus{ptypes.TimestampString(info.GetLastDeployed()), rs.Namespace, info.Status.Code.String(), strings.Split(info.Status.Resources, "\n\n")}
 }
 
 func makeReleaseStatusHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
