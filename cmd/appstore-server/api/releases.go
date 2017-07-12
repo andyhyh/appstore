@@ -78,7 +78,16 @@ func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, lo
 		return http.StatusInternalServerError, fmt.Errorf("failed to get chart metadata"), nil
 	}
 
-	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: "", Version: chartMetaData.Version, Values: valuesMap, Package: chartMetaData.Name}, Id: rel.Name, Namespace: rel.Namespace}
+	appstoreMetaDataRaw, found := valuesMap[appstoreMetaDataKey]
+	if !found {
+		return http.StatusInternalServerError, fmt.Errorf("failed to get appstore package metadata"), nil
+	}
+	appstoreMetaData, ok := appstoreMetaDataRaw.(map[string]interface{})
+	if !ok {
+		return http.StatusInternalServerError, fmt.Errorf("package metadata is invalid"), nil
+	}
+
+	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: appstoreMetaData["repo"].(string), Version: chartMetaData.Version, Values: valuesMap, Package: chartMetaData.Name}, Id: rel.Name, Namespace: rel.Namespace}
 
 	return http.StatusOK, err, desiredDetails
 }
