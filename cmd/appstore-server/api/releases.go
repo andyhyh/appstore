@@ -55,23 +55,36 @@ func makeDeleteReleaseHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	}
 }
 
-func getPackageMetaData(values map[string]interface{}) (map[string]interface{}, error) {
+func getPackageMetaData(values map[string]interface{}) (*PackageAppstoreMetaData, error) {
 	appstoreMetaDataRaw, found := values[appstoreMetaDataKey]
 	if !found {
 		return nil, fmt.Errorf("failed to get appstore package metadata")
 	}
+
 	appstoreMetaData, ok := appstoreMetaDataRaw.(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("package metadata is invalid")
 	}
 
-	return appstoreMetaData, nil
+	md := new(PackageAppstoreMetaData)
+	for k, v := range appstoreMetaData {
+		switch k {
+		case "repo":
+			repo, ok := v.(string)
+			if !ok {
+				return nil, fmt.Errorf("invalid package metadata")
+			}
+			md.Repo = repo
+		}
+	}
+
+	return md, nil
 }
 
 type ReleaseDetails struct {
 	*release.Release
 	Values           map[string]interface{}
-	AppstoreMetaData map[string]interface{}
+	AppstoreMetaData *PackageAppstoreMetaData
 }
 
 func getReleaseDetails(releaseName string, client helm.Interface, logger *logrus.Entry) (*ReleaseDetails, error) {
@@ -112,7 +125,7 @@ func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, lo
 		return http.StatusInternalServerError, fmt.Errorf("failed to get chart metadata"), nil
 	}
 
-	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: rd.AppstoreMetaData["repo"].(string), Version: chartMetaData.Version, Values: rd.Values, Package: chartMetaData.Name}, Id: rd.Name, Namespace: rd.Namespace}
+	desiredDetails := releaseutil.Release{ReleaseSettings: &releaseutil.ReleaseSettings{Repo: rd.AppstoreMetaData.Repo, Version: chartMetaData.Version, Values: rd.Values, Package: chartMetaData.Name}, Id: rd.Name, Namespace: rd.Namespace}
 
 	return http.StatusOK, err, desiredDetails
 }
@@ -301,7 +314,7 @@ func upgradeReleaseHandler(releaseName string, upgradeSettingsRaw io.ReadCloser,
 	}
 
 	// TODO: Handle TLS related things:
-	chartPath, err := install.LocateChartPath(chartMetaData.Name, rd.AppstoreMetaData["repo"].(string), upgradeSettings.Version, false, "", settings, logger)
+	chartPath, err := install.LocateChartPath(chartMetaData.Name, rd.AppstoreMetaData.Repo, upgradeSettings.Version, false, "", settings, logger)
 	if err != nil {
 		return http.StatusNotFound, err, nil
 	}
