@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/goware/cors"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -49,6 +50,15 @@ func main() {
 	baseRouter.Use(middleware.Recoverer)
 	baseRouter.Use(middleware.CloseNotify)
 	baseRouter.Use(middleware.Timeout(60 * time.Second))
+
+	cors := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	})
+	baseRouter.Use(cors.Handler)
 
 	baseRouter.Mount("/api", api.CreateAPIRouter(settings))
 	baseRouter.Get("/healthz", healthzHandler)
