@@ -1,5 +1,5 @@
-hash: f87c8b3ab407a5fa7c0028a2c31cde859cc2813aa85ea71f364bc3e9f90a5c87
-updated: 2017-06-30T09:04:18.302513899+02:00
+hash: beb3d96f4f34a76e5fe272714ddaad1bd213cdabeff2fd907972d07bf9b1c869
+updated: 2017-07-13T11:18:19.902607244+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -95,10 +95,12 @@ imports:
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/go-chi/chi
-  version: 967844826e58cf31213a7dfb82455d242ad85101
+  version: 08660a0ad10a8fa7beab3ad43afe66373d49d06a
   subpackages:
   - middleware
   - render
+- name: github.com/go-chi/render
+  version: 9f855fadd4b8cde7773f9ef51f6b2705af239519
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -171,7 +173,7 @@ imports:
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/Sirupsen/logrus
-  version: 202f25545ea4cf9b191ff7f846df5d87c9382c2b
+  version: 7f976d3a76720c4c27af2ba716b85d2e0a7e38b1
 - name: github.com/spf13/cobra
   version: f62e98d28ab7ad31d707ba837a966378465c7b57
 - name: github.com/spf13/pflag
@@ -450,7 +452,7 @@ imports:
   - pkg/urlutil
   - pkg/version
 - name: k8s.io/kubernetes
-  version: 7c3906a4eccd5a7cad245de0bd65337927a60bef
+  version: 313fd317f96265658831a576fafdd6ed85aaf428
   subpackages:
   - federation/apis/federation
   - federation/apis/federation/install

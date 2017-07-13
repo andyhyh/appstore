@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/render"
+	"github.com/go-chi/render"
 )
 
 type ErrorJson struct {

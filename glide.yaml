@@ -28,3 +28,5 @@ import:
   - pkg/repo
 - package: github.com/m4rw3r/uuid
   version: ^1.0.0
+- package: github.com/go-chi/render
+  version: ^1.0.0
