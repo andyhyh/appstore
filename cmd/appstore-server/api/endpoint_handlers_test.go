@@ -16,7 +16,7 @@ import (
 func TestPackageIndexHandler(t *testing.T) {
 	resp, body := handlerutil.TestHandler(t, makeListPackagesHandler(helmutil.MockSettings), "GET", "/", nil)
 	handlerutil.CheckStatus(resp, http.StatusOK, t)
-	var results [][]*search.Result
+	var results []*Package
 	err := json.NewDecoder(body).Decode(&results)
 	if err != nil {
 		t.Errorf("decoding of result failed: %s", err.Error())
