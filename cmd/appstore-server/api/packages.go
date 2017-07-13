@@ -20,6 +20,7 @@ type PackageAppstoreMetaData struct {
 	Repo string `json:"repo"`
 }
 
+// Show all information about a given package / chart
 func PackageDetailHandler(packageName, repo, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, *chart.Chart) {
 	if packageName == "" {
 		return http.StatusBadRequest, fmt.Errorf("no package specified"), nil
@@ -39,6 +40,7 @@ func PackageDetailHandler(packageName, repo, version string, settings *helm_env.
 	return http.StatusOK, nil, chartRequested
 }
 
+// Find all chart matching a specific query, such as ?query=mysql or ?repo=stable.
 func chartSearchHandler(query string, repo string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	results, err := app_search.FindCharts(settings, query, repo, "", logger)
 	if err != nil {
@@ -53,6 +55,7 @@ type Package struct {
 	AvailableVersions []string       `json:"available_versions"`
 }
 
+// Return a list of all packages paired with all available versions of the package.
 func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, []Package) {
 	results, err := app_search.GetAllCharts(settings, logger)
 

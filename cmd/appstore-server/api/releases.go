@@ -31,6 +31,8 @@ const (
 	appstoreMetaDataKey           = "appstore_meta_data"
 )
 
+// Delete the release with release name releaseName.
+// If the release is associated with a dataporten application, attempt to delete this as well.
 func deleteReleaseHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if releaseName == "" {
 		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
@@ -131,6 +133,9 @@ func getReleaseDetails(releaseName string, client helm.Interface, logger *logrus
 	return &ReleaseDetails{rel, values, appstoreMetaData}, nil
 }
 
+// For the release with release name releaseName, get the same
+// information about a release that was returned to the user when
+// installing (i.e. the passed values etc.) the release.
 func releaseDetailHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if releaseName == "" {
 		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
@@ -195,6 +200,9 @@ func parseResources(resources []string) map[string]map[string]string {
 	return parsedRes
 }
 
+// For the release with release name releaseName, get status related
+// information (i.e. whether the release is deployed, which resources it
+// is using etc.)
 func releaseStatusHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if releaseName == "" {
 		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
@@ -239,6 +247,9 @@ func makeReleaseOverviewHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 	}
 }
 
+// Install a release using the provided values and settings, should
+// return the same values that was posted along with some extra
+// information, such as which namespace it was actually deployed in etc.
 func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	releaseSettings := &releaseutil.ReleaseSettings{Repo: "stable"}
 	decoder := json.NewDecoder(releaseSettingsRaw)
@@ -306,6 +317,9 @@ type UpgradeReleaseSettings struct {
 	Version string `json:"version"`
 }
 
+// Upgrade the release with release name releaseName to the provided
+// version (this may actually be a downgrade). The handler attempts to
+// use the same repo and package name as the release was deployed with.
 func upgradeReleaseHandler(releaseName string, upgradeSettingsRaw io.ReadCloser, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	var upgradeSettings UpgradeReleaseSettings
 	decoder := json.NewDecoder(upgradeSettingsRaw)

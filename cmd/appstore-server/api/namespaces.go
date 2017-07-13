@@ -17,6 +17,11 @@ const (
 	namespaceMappingFile = "subjects.yml"
 )
 
+// Return a list of the namespaces the enduser is allowed to deploy to.
+// The namespaceMappingFile contains a hardcoded mapping between
+// namespaces and subjects (which in this case may be dataporten
+// groups), and this mapping is used to determine which namespace the
+// user is allowed to use.
 func listNamespacesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	groupsResp, err := dataporten.RequestGroups(os.Getenv("TOKEN"), logger)
 	if err != nil {
