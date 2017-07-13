@@ -32,10 +32,12 @@ func createReleaseRouter(settings *helm_env.EnvSettings) http.Handler {
 	r := chi.NewRouter()
 	r.Get("/", makeReleaseOverviewHandler(settings))
 	r.Post("/", makeInstallReleaseHandler(settings))
-	r.Get("/{releaseName}", makeReleaseDetailHandler(settings))
-	r.Get("/{releaseName}/status", makeReleaseStatusHandler(settings))
-	r.Patch("/{releaseName}", makeUpgradeReleaseHandler(settings))
-	r.Delete("/{releaseName}", makeDeleteReleaseHandler(settings))
+	r.Route("/{releaseName}", func(sr chi.Router) {
+		sr.Get("/", makeReleaseDetailHandler(settings))
+		sr.Patch("/", makeUpgradeReleaseHandler(settings))
+		sr.Delete("/", makeDeleteReleaseHandler(settings))
+		sr.Get("/status", makeReleaseStatusHandler(settings))
+	})
 	return r
 }
 
