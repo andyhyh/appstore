@@ -48,7 +48,12 @@ func chartSearchHandler(query string, repo string, settings *helm_env.EnvSetting
 	return http.StatusOK, nil, results
 }
 
-func AllPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, [][]*search.Result) {
+type Package struct {
+	NewestChart       *search.Result `json:"newest_chart"`
+	AvailableVersions []string       `json:"available_versions"`
+}
+
+func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, []Package) {
 	results, err := app_search.GetAllCharts(settings, logger)
 
 	if err != nil {
@@ -56,8 +61,17 @@ func AllPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (i
 	}
 
 	packagesAllVersions := app_search.GroupResultsByName(results)
+	packagesWithVersions := make([]Package, len(packagesAllVersions))
+	for p_i, packages := range packagesAllVersions {
+		versions := make([]string, len(packages))
+		for v_i, pv := range packages {
+			versions[v_i] = pv.Chart.Version
+		}
+		p := Package{packages[0], versions}
+		packagesWithVersions[p_i] = p
+	}
 
-	return http.StatusOK, nil, packagesAllVersions
+	return http.StatusOK, nil, packagesWithVersions
 }
 
 func makeListPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
@@ -72,7 +86,7 @@ func makeListPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 		if query != "" || repo != "" {
 			status, err, res = chartSearchHandler(query, repo, settings, apiReqLogger)
 		} else {
-			status, err, res = AllPackagesHandler(settings, apiReqLogger)
+			status, err, res = allPackagesHandler(settings, apiReqLogger)
 		}
 
 		returnJSON(w, r, res, err, status)
