@@ -11,8 +11,8 @@ Environment variables are used for most of the config, as this makes it
 easier to specify the config when running inside k8s.
 
 The following environment variables are used:
-- TOKEN_ISSUER: the url to the service that issues JWT tokens
-- DATAPORTEN_GK_CREDS: The basic auth credentials used by the Dataporten
+- `HELM_HOST` is used to specify the url to the Tiller server
+- `TOKEN_ISSUER` the url to the service that issues JWT tokens
+- `DATAPORTEN_GK_CREDS` The basic auth credentials used by the Dataporten
   API gatekeeper
-- DATAPORTEN_GROUPS_ENDPOINT_URL: the url to the dataporten groups API
-- HELM_HOST: is used to specify the url to the Tiller server
+- `DATAPORTEN_GROUPS_ENDPOINT_URL` the url to the dataporten groups API
