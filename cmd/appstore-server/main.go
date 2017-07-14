@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/UNINETT/appstore/cmd/appstore-server/api"
-	"github.com/UNINETT/appstore/pkg/config"
 	"github.com/UNINETT/appstore/pkg/helmutil"
 	"github.com/UNINETT/appstore/pkg/logger"
 
@@ -45,16 +44,11 @@ func main() {
 		panic(err)
 	}
 
-	appstoreConf, err := config.LoadAppstoreConfig("./appstore.yml")
-	if err != nil {
-		panic(err)
-	}
-
 	auth.SetConfig(
 		[]string{"dataporten"},
 		nil,
-		appstoreConf.DataportenConf.BasicAuthCreds,
-		appstoreConf.DataportenConf.GroupsEndpointUrl,
+		map[string]string{"dataporten_creds": os.Getenv("DATAPORTEN_GK_CREDS")},
+		os.Getenv("DATAPORTEN_GROUPS_ENDPOINT_URL"),
 		"",
 		"",
 	)
