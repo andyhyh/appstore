@@ -14,7 +14,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
-	"github.com/UNINETT/appstore/pkg/dataporten"
 	"github.com/UNINETT/appstore/pkg/helmutil"
 	"github.com/UNINETT/appstore/pkg/install"
 	"github.com/UNINETT/appstore/pkg/logger"
@@ -27,8 +26,7 @@ import (
 )
 
 const (
-	dataportenAppstoreSettingsKey = "dataporten_appstore_settings"
-	appstoreMetaDataKey           = "appstore_meta_data"
+	appstoreMetaDataKey = "appstore_meta_data"
 )
 
 // Delete the release with release name releaseName.
@@ -51,25 +49,9 @@ func deleteReleaseHandler(context context.Context, releaseName string, settings 
 	}
 	logger.Debugf("Successfully deleted: %s", releaseName)
 
-	if dpDetailsRaw, found := rd.Values[dataportenAppstoreSettingsKey]; found {
-		token := context.Value("token").(string)
-		if token == "" {
-			logger.Debug("No X-Dataporten-Token header not present")
-			return http.StatusBadRequest, fmt.Errorf("missing X-Dataporten-Token"), nil
-		}
-
-		dpDetails := dpDetailsRaw.(map[string]interface{})
-		clientId := dpDetails["id"].(string)
-		logger.Debugf("Attempting to delete dataporten client: %s", clientId)
-
-		httpResp, err := dataporten.DeleteClient(clientId, token, logger)
-		if err != nil {
-			return http.StatusInternalServerError, err, nil
-		}
-		if httpResp.StatusCode != http.StatusOK {
-			return httpResp.StatusCode, fmt.Errorf(httpResp.Status), nil
-		}
-		logger.Debugf("Sucessfully dataporten client deleted: %s", clientId)
+	httpStatus, err, _ := deleteClientHandler(rd.Values, context, logger)
+	if err != nil {
+		return httpStatus, err, nil
 	}
 
 	return http.StatusOK, err, status
@@ -272,51 +254,24 @@ func installReleaseHandler(context context.Context, releaseSettingsRaw io.ReadCl
 		return status, err, nil
 	}
 
-	dataportenSettings, err := dataporten.MaybeGetSettings(releaseSettings.Values)
+	status, err, dataportenRes := createClientHandler(releaseSettings, context, settings, logger)
 	if err != nil {
-		return http.StatusInternalServerError, err, nil
+		return status, err, nil
 	}
-
-	var dataportenRes *dataporten.RegisterClientResult
-	var token string
-	if dataportenSettings != nil && err == nil {
-		logger.Debugf("Attempting to register dataporten application %s", dataportenSettings.Name)
-
-		token = context.Value("token").(string)
-		if token == "" {
-			logger.Debug("No X-Dataporten-Token header not present")
-			return http.StatusBadRequest, fmt.Errorf("missing X-Dataporten-Token"), nil
-		}
-
-		regResp, err := dataporten.CreateClient(dataportenSettings, token, logger)
-
-		if regResp.StatusCode != http.StatusCreated {
-			return regResp.StatusCode, fmt.Errorf(regResp.Status), nil
-		}
-
-		dataportenRes, err = dataporten.ParseRegistrationResult(regResp.Body, logger)
-		if err != nil {
-			return http.StatusInternalServerError, err, nil
-		}
-
-		releaseSettings.Values[dataportenAppstoreSettingsKey] = dataportenRes
-		logger.Debugf("Successfully registered application %s", dataportenSettings.Name)
-	}
+	releaseSettings.Values[dataportenAppstoreSettingsKey] = dataportenRes
 
 	releaseSettings.Values[appstoreMetaDataKey] = PackageAppstoreMetaData{Repo: releaseSettings.Repo}
 	res, err := install.InstallChart(chartRequested, releaseSettings.Namespace, releaseSettings.Values, settings, logger)
 
-	if err == nil {
-		releaseSettings.Version = res.Chart.Metadata.Version
-		res := releaseutil.Release{Id: res.Name, Namespace: res.Namespace, ReleaseSettings: releaseSettings}
-		return http.StatusOK, nil, res
-	} else {
-		if dataportenRes != nil {
-			logger.Debugf("Attempting to delete dataporten client: %s", dataportenRes.ClientId)
-			_, _ = dataporten.DeleteClient(dataportenRes.ClientId, token, logger)
-		}
-		return http.StatusInternalServerError, err, nil
+	// TODO: give a better error
+	if err != nil {
+		_, _, _ = deleteClientHandler(releaseSettings.Values, context, logger)
+		return http.StatusOK, nil, nil
 	}
+
+	releaseSettings.Version = res.Chart.Metadata.Version
+	res := releaseutil.Release{Id: res.Name, Namespace: res.Namespace, ReleaseSettings: releaseSettings}
+	return http.StatusOK, nil, res
 }
 
 func makeInstallReleaseHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
