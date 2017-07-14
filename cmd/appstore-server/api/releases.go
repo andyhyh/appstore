@@ -1,11 +1,11 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
@@ -33,7 +33,7 @@ const (
 
 // Delete the release with release name releaseName.
 // If the release is associated with a dataporten application, attempt to delete this as well.
-func deleteReleaseHandler(releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+func deleteReleaseHandler(context context.Context, releaseName string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
 	if releaseName == "" {
 		return http.StatusNotFound, fmt.Errorf("no release provided"), nil
 	}
@@ -52,11 +52,17 @@ func deleteReleaseHandler(releaseName string, settings *helm_env.EnvSettings, lo
 	logger.Debugf("Successfully deleted: %s", releaseName)
 
 	if dpDetailsRaw, found := rd.Values[dataportenAppstoreSettingsKey]; found {
+		token := context.Value("token").(string)
+		if token == "" {
+			logger.Debug("No X-Dataporten-Token header not present")
+			return http.StatusBadRequest, fmt.Errorf("missing X-Dataporten-Token"), nil
+		}
+
 		dpDetails := dpDetailsRaw.(map[string]interface{})
 		clientId := dpDetails["id"].(string)
 		logger.Debugf("Attempting to delete dataporten client: %s", clientId)
 
-		httpResp, err := dataporten.DeleteClient(clientId, os.Getenv("TOKEN"), logger)
+		httpResp, err := dataporten.DeleteClient(clientId, token, logger)
 		if err != nil {
 			return http.StatusInternalServerError, err, nil
 		}
@@ -73,7 +79,7 @@ func makeDeleteReleaseHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
 		releaseName := chi.URLParam(r, "releaseName")
-		status, err, res := deleteReleaseHandler(releaseName, settings, apiReqLogger)
+		status, err, res := deleteReleaseHandler(r.Context(), releaseName, settings, apiReqLogger)
 
 		returnJSON(w, r, res, err, status)
 	}
@@ -250,7 +256,8 @@ func makeReleaseOverviewHandler(settings *helm_env.EnvSettings) http.HandlerFunc
 // Install a release using the provided values and settings, should
 // return the same values that was posted along with some extra
 // information, such as which namespace it was actually deployed in etc.
-func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+func installReleaseHandler(context context.Context, releaseSettingsRaw io.ReadCloser, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+
 	releaseSettings := &releaseutil.ReleaseSettings{Repo: "stable"}
 	decoder := json.NewDecoder(releaseSettingsRaw)
 	err := decoder.Decode(&releaseSettings)
@@ -271,9 +278,17 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 	}
 
 	var dataportenRes *dataporten.RegisterClientResult
+	var token string
 	if dataportenSettings != nil && err == nil {
 		logger.Debugf("Attempting to register dataporten application %s", dataportenSettings.Name)
-		regResp, err := dataporten.CreateClient(dataportenSettings, os.Getenv("TOKEN"), logger)
+
+		token = context.Value("token").(string)
+		if token == "" {
+			logger.Debug("No X-Dataporten-Token header not present")
+			return http.StatusBadRequest, fmt.Errorf("missing X-Dataporten-Token"), nil
+		}
+
+		regResp, err := dataporten.CreateClient(dataportenSettings, token, logger)
 
 		if regResp.StatusCode != http.StatusCreated {
 			return regResp.StatusCode, fmt.Errorf(regResp.Status), nil
@@ -298,7 +313,7 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 	} else {
 		if dataportenRes != nil {
 			logger.Debugf("Attempting to delete dataporten client: %s", dataportenRes.ClientId)
-			_, _ = dataporten.DeleteClient(dataportenRes.ClientId, os.Getenv("TOKEN"), logger)
+			_, _ = dataporten.DeleteClient(dataportenRes.ClientId, token, logger)
 		}
 		return http.StatusInternalServerError, err, nil
 	}
@@ -307,7 +322,8 @@ func installReleaseHandler(releaseSettingsRaw io.ReadCloser, settings *helm_env.
 func makeInstallReleaseHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
-		status, err, res := installReleaseHandler(r.Body, settings, apiReqLogger)
+
+		status, err, res := installReleaseHandler(r.Context(), r.Body, settings, apiReqLogger)
 
 		returnJSON(w, r, res, err, status)
 	}
