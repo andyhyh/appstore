@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/UNINETT/appstore/cmd/appstore-server/api"
+	"github.com/UNINETT/appstore/pkg/config"
 	"github.com/UNINETT/appstore/pkg/helmutil"
 	"github.com/UNINETT/appstore/pkg/logger"
 
@@ -16,6 +17,8 @@ import (
 	"github.com/goware/cors"
 
 	log "github.com/Sirupsen/logrus"
+
+	auth "scm.uninett.no/laas/laasctl-auth"
 
 	helm_env "k8s.io/helm/pkg/helm/environment"
 )
@@ -41,6 +44,20 @@ func main() {
 	if err := helmutil.EnsureRepoFileFormat(settings.Home.RepositoryFile()); err != nil {
 		panic(err)
 	}
+
+	appstoreConf, err := config.LoadAppstoreConfig("./appstore.yml")
+	if err != nil {
+		panic(err)
+	}
+
+	auth.SetConfig(
+		[]string{"dataporten"},
+		nil,
+		appstoreConf.DataportenConf.BasicAuthCreds,
+		appstoreConf.DataportenConf.GroupsEndpointUrl,
+		"",
+		"",
+	)
 
 	baseRouter := chi.NewRouter()
 

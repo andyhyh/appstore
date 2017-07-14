@@ -1,5 +1,5 @@
-hash: beb3d96f4f34a76e5fe272714ddaad1bd213cdabeff2fd907972d07bf9b1c869
-updated: 2017-07-13T11:18:19.902607244+02:00
+hash: a9cd8ac3cf13d157736b15e1904ecbae8e22f21f3610cdb6541962aeb36768f2
+updated: 2017-07-14T13:07:14.685165175+02:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -176,8 +176,14 @@ imports:
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
+- name: github.com/SermoDigital/jose
+  version: 2bd9b81ac51d6d6134fcd4fd846bd2e7347a15f9
+  subpackages:
+  - crypto
+  - jws
+  - jwt
 - name: github.com/Sirupsen/logrus
-  version: 7f976d3a76720c4c27af2ba716b85d2e0a7e38b1
+  version: a3f95b5c423586578a4e099b11a46c2479628cac
 - name: github.com/spf13/cobra
   version: f62e98d28ab7ad31d707ba837a966378465c7b57
 - name: github.com/spf13/pflag
@@ -587,6 +593,8 @@ imports:
   - pkg/util/slice
   - pkg/util/term
   - pkg/version
+- name: scm.uninett.no/laas/laasctl-auth
+  version: 1efae71937b66455ec4217dc397349d635932028
 - name: vbom.ml/util
   version: db5cfe13f5cc80a4990d98e2e1b0707a4d1a5394
   repo: https://github.com/fvbommel/util.git

@@ -2,9 +2,12 @@ package api
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/go-chi/chi"
 	helm_env "k8s.io/helm/pkg/helm/environment"
-	"net/http"
+
+	auth "scm.uninett.no/laas/laasctl-auth"
 )
 
 func apiVersionCtx(version string) func(next http.Handler) http.Handler {
@@ -47,8 +50,8 @@ func CreateAPIRouter(settings *helm_env.EnvSettings) http.Handler {
 	baseAPIrouter.Route("/v1", func(baseAPIrouter chi.Router) {
 		baseAPIrouter.Use(apiVersionCtx("v1"))
 		baseAPIrouter.Mount("/packages", createPackagesRouter(settings))
-		baseAPIrouter.Mount("/releases", createReleaseRouter(settings))
-		baseAPIrouter.Mount("/namespaces", createNamespacesRouter(settings))
+		baseAPIrouter.With(auth.MiddlewareHandler).Mount("/releases", createReleaseRouter(settings))
+		baseAPIrouter.With(auth.MiddlewareHandler).Mount("/namespaces", createNamespacesRouter(settings))
 	})
 
 	return baseAPIrouter

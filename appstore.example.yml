@@ -1,0 +1,4 @@
+DataportenConf:
+  BasicAuthCreds:
+    dataporten_creds: "user:passwd"
+  GroupsEndPointUrl: "https://groups-api.dataporten.no/groups/me/groups"
