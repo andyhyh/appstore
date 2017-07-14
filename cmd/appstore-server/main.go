@@ -34,6 +34,10 @@ func main() {
 
 	settings := helmutil.InitHelmSettings(*debug, *tillerHost)
 
+	if settings.TillerHost == "" {
+		panic(fmt.Errorf("Tiller host is missing!"))
+	}
+
 	if err := helmutil.EnsureDirectories(settings.Home); err != nil {
 		panic(err)
 	}
