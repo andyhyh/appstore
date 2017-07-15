@@ -196,7 +196,7 @@ type releaseStatus struct {
 //
 // as this is easier to reuse.
 func parseResources(resourcesRaw string) map[string]map[string]string {
-	resourcesSplit := strings.Split(info.Status.Resources, "\n\n")
+	resourcesSplit := strings.Split(resourcesRaw, "\n\n")
 
 	parsedRes := make(map[string]map[string]string)
 	for _, r := range resourcesSplit {
@@ -306,8 +306,8 @@ func installReleaseHandler(context context.Context, releaseSettingsRaw io.ReadCl
 	}
 
 	releaseSettings.Version = res.Chart.Metadata.Version
-	res := releaseutil.Release{Id: res.Name, Namespace: res.Namespace, ReleaseSettings: releaseSettings}
-	return http.StatusOK, nil, res
+	release := releaseutil.Release{Id: res.Name, Namespace: res.Namespace, ReleaseSettings: releaseSettings}
+	return http.StatusOK, nil, release
 }
 
 func makeInstallReleaseHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
