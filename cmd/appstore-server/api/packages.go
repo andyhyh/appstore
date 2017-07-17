@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi"
 
@@ -56,6 +57,24 @@ func makePackageDetailHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	}
 }
 
+func groupSearchResult(results []*search.Result) []Package {
+	packagesAllVersions := app_search.GroupResultsByName(results)
+	packagesWithVersions := make([]Package, len(packagesAllVersions))
+	for p_i, packages := range packagesAllVersions {
+		versions := make([]string, len(packages))
+		for v_i, pv := range packages {
+			versions[v_i] = pv.Chart.Version
+		}
+		latestPackage := packages[0]
+		parts := strings.Split(latestPackage.Name, "/")
+
+		p := Package{packages[0], versions, parts[0]}
+		packagesWithVersions[p_i] = p
+	}
+
+	return packagesWithVersions
+}
+
 // Find all chart matching a specific query, such as ?query=mysql or ?repo=stable.
 func chartSearchHandler(query string, repo string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, interface{}, error) {
 	results, err := app_search.FindCharts(settings, query, repo, "", logger)
@@ -63,12 +82,15 @@ func chartSearchHandler(query string, repo string, settings *helm_env.EnvSetting
 		return http.StatusInternalServerError, nil, err
 	}
 
-	return http.StatusOK, results, nil
+	packagesWithVersions := groupSearchResult(results)
+
+	return http.StatusOK, packagesWithVersions, nil
 }
 
 type Package struct {
 	NewestChart       *search.Result `json:"newest_chart"`
 	AvailableVersions []string       `json:"available_versions"`
+	Repo              string         `json:"repo"`
 }
 
 // Return a list of all packages paired with all available versions of the package.
@@ -79,17 +101,7 @@ func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (i
 		return http.StatusInternalServerError, nil, err
 	}
 
-	packagesAllVersions := app_search.GroupResultsByName(results)
-	packagesWithVersions := make([]Package, len(packagesAllVersions))
-	for p_i, packages := range packagesAllVersions {
-		versions := make([]string, len(packages))
-		for v_i, pv := range packages {
-			versions[v_i] = pv.Chart.Version
-		}
-		p := Package{packages[0], versions}
-		packagesWithVersions[p_i] = p
-	}
-
+	packagesWithVersions := groupSearchResult(results)
 	return http.StatusOK, packagesWithVersions, nil
 }
 
