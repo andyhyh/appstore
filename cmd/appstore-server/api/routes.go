@@ -40,6 +40,7 @@ func createNamespacesRouter(settings *helm_env.EnvSettings) http.Handler {
 func createPackagesRouter(settings *helm_env.EnvSettings) http.Handler {
 	r := chi.NewRouter()
 	r.Get("/", makeListPackagesHandler(settings))
+	r.Get("/{packageName}", makePackageDetailHandler(settings))
 	return r
 }
 

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi"
+
 	"github.com/Sirupsen/logrus"
 
 	"github.com/UNINETT/appstore/pkg/install"
@@ -29,7 +31,7 @@ func PackageDetailHandler(packageName, repo, version string, settings *helm_env.
 	// TODO: Handle TLS related things:
 	chartPath, err := install.LocateChartPath(packageName, repo, version, false, "", settings, logger)
 	if err != nil {
-		return http.StatusNotFound, err, nil
+		return http.StatusNotFound, fmt.Errorf("%s, version: %s, repo: %s not found", packageName, version, repo), nil
 	}
 
 	chartRequested, err := chartutil.Load(chartPath)
@@ -38,6 +40,20 @@ func PackageDetailHandler(packageName, repo, version string, settings *helm_env.
 	}
 
 	return http.StatusOK, nil, chartRequested
+}
+
+func makePackageDetailHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		apiReqLogger := logger.MakeAPILogger(r)
+
+		p := chi.URLParam(r, "packageName")
+		v := r.URL.Query().Get("version")
+		repo := r.URL.Query().Get("repo")
+
+		status, err, res := PackageDetailHandler(p, repo, v, settings, apiReqLogger)
+
+		returnJSON(w, r, res, err, status)
+	}
 }
 
 // Find all chart matching a specific query, such as ?query=mysql or ?repo=stable.
