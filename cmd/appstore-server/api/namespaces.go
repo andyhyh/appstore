@@ -22,27 +22,27 @@ const (
 // namespaces and subjects (which in this case may be dataporten
 // groups), and this mapping is used to determine which namespace the
 // user is allowed to use.
-func listNamespacesHandler(context context.Context, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+func listNamespacesHandler(context context.Context, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, interface{}, error) {
 	token := context.Value("token").(string)
 	if token == "" {
 		logger.Debug("No X-Dataporten-Token header not present")
-		return http.StatusBadRequest, fmt.Errorf("missing X-Dataporten-Token"), nil
+		return http.StatusBadRequest, nil, fmt.Errorf("missing X-Dataporten-Token")
 	}
 	groupsResp, err := dataporten.RequestGroups(token, logger)
 	if err != nil {
-		return groupsResp.StatusCode, err, nil
+		return groupsResp.StatusCode, nil, err
 	}
 	if groupsResp.StatusCode != 200 {
-		return groupsResp.StatusCode, fmt.Errorf(groupsResp.Status), nil
+		return groupsResp.StatusCode, nil, fmt.Errorf(groupsResp.Status)
 	}
 	userGroups, err := dataporten.ParseGroupResult(groupsResp.Body, logger)
 	if err != nil {
-		return http.StatusInternalServerError, err, nil
+		return http.StatusInternalServerError, nil, err
 	}
 
 	namespaceSubjectMapping, err := config.LoadNamespaceMappings("./" + namespaceMappingFile)
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("could not load namespace to subject mapping"), nil
+		return http.StatusInternalServerError, nil, fmt.Errorf("could not load namespace to subject mapping")
 	}
 
 	allowedNamespaces := make([]*config.NamespaceMapping, 0)
@@ -56,13 +56,13 @@ func listNamespacesHandler(context context.Context, settings *helm_env.EnvSettin
 		}
 	}
 
-	return http.StatusOK, nil, allowedNamespaces
+	return http.StatusOK, allowedNamespaces, nil
 }
 
 func makeListNamespacesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiReqLogger := logger.MakeAPILogger(r)
-		status, err, res := listNamespacesHandler(r.Context(), settings, apiReqLogger)
+		status, res, err := listNamespacesHandler(r.Context(), settings, apiReqLogger)
 
 		returnJSON(w, r, res, err, status)
 	}

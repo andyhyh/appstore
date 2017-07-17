@@ -17,16 +17,16 @@ const (
 	dataportenAppstoreSettingsKey = "dataporten_appstore_settings"
 )
 
-func deleteClientHandler(vals map[string]interface{}, context context.Context, logger *logrus.Entry) (int, error, interface{}) {
+func deleteClientHandler(context context.Context, vals map[string]interface{}, logger *logrus.Entry) (int, interface{}, error) {
 	token := context.Value("token").(string)
 	if token == "" {
 		logger.Debug("No X-Dataporten-Token header not present")
-		return http.StatusBadRequest, fmt.Errorf("missing X-Dataporten-Token"), nil
+		return http.StatusBadRequest, nil, fmt.Errorf("missing X-Dataporten-Token")
 	}
 
 	dpDetailsRaw, found := vals[dataportenAppstoreSettingsKey]
 	if !found {
-		return http.StatusInternalServerError, fmt.Errorf("Dataporten appstore settings not found"), nil
+		return http.StatusInternalServerError, nil, fmt.Errorf("Dataporten appstore settings not found")
 	}
 	var clientId string
 	switch dpDetailsRaw.(type) {
@@ -41,10 +41,10 @@ func deleteClientHandler(vals map[string]interface{}, context context.Context, l
 	logger.Debugf("Attempting to delete dataporten client: %s", clientId)
 	httpResp, err := dataporten.DeleteClient(clientId, token, logger)
 	if err != nil {
-		return http.StatusInternalServerError, err, nil
+		return http.StatusInternalServerError, nil, err
 	}
 	if httpResp.StatusCode != http.StatusOK {
-		return httpResp.StatusCode, fmt.Errorf(httpResp.Status), nil
+		return httpResp.StatusCode, nil, fmt.Errorf(httpResp.Status)
 	}
 
 	logger.Debugf("Sucessfully deleted dataporten client: %s", clientId)
@@ -52,33 +52,33 @@ func deleteClientHandler(vals map[string]interface{}, context context.Context, l
 
 }
 
-func createClientHandler(rs *releaseutil.ReleaseSettings, context context.Context, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, *dataporten.RegisterClientResult) {
+func createClientHandler(context context.Context, rs *releaseutil.ReleaseSettings, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, *dataporten.RegisterClientResult, error) {
 	token := context.Value("token").(string)
 	if token == "" {
 		logger.Debug("No X-Dataporten-Token header not present")
-		return http.StatusBadRequest, fmt.Errorf("missing X-Dataporten-Token"), nil
+		return http.StatusBadRequest, nil, fmt.Errorf("missing X-Dataporten-Token")
 	}
 
 	dataportenSettings, err := dataporten.MaybeGetSettings(rs.Values)
 	if err != nil {
-		return http.StatusInternalServerError, err, nil
+		return http.StatusInternalServerError, nil, err
 	}
 	if dataportenSettings == nil {
-		return http.StatusInternalServerError, fmt.Errorf("Dataporten settings missing"), nil
+		return http.StatusInternalServerError, nil, fmt.Errorf("Dataporten settings missing")
 	}
 
 	logger.Debugf("Attempting to register dataporten application %s", dataportenSettings.Name)
 	regResp, err := dataporten.CreateClient(dataportenSettings, token, logger)
 
 	if regResp.StatusCode != http.StatusCreated {
-		return regResp.StatusCode, fmt.Errorf(regResp.Status), nil
+		return regResp.StatusCode, nil, fmt.Errorf(regResp.Status)
 	}
 
 	dataportenRes, err := dataporten.ParseRegistrationResult(regResp.Body, logger)
 	if err != nil {
-		return http.StatusInternalServerError, err, nil
+		return http.StatusInternalServerError, nil, err
 	}
 
 	logger.Debugf("Successfully registered application %s", dataportenSettings.Name)
-	return http.StatusOK, nil, dataportenRes
+	return http.StatusOK, dataportenRes, nil
 }

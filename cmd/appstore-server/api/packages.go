@@ -23,23 +23,23 @@ type PackageAppstoreMetaData struct {
 }
 
 // Show all information about a given package / chart
-func PackageDetailHandler(packageName, repo, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, *chart.Chart) {
+func PackageDetailHandler(packageName, repo, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, *chart.Chart, error) {
 	if packageName == "" {
-		return http.StatusBadRequest, fmt.Errorf("no package specified"), nil
+		return http.StatusBadRequest, nil, fmt.Errorf("no package specified")
 	}
 
 	// TODO: Handle TLS related things:
 	chartPath, err := install.LocateChartPath(packageName, repo, version, false, "", settings, logger)
 	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("%s, version: %s, repo: %s not found", packageName, version, repo), nil
+		return http.StatusNotFound, nil, fmt.Errorf("%s, version: %s, repo: %s not found", packageName, version, repo)
 	}
 
 	chartRequested, err := chartutil.Load(chartPath)
 	if err != nil {
-		return http.StatusInternalServerError, err, nil
+		return http.StatusInternalServerError, nil, err
 	}
 
-	return http.StatusOK, nil, chartRequested
+	return http.StatusOK, chartRequested, nil
 }
 
 func makePackageDetailHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
@@ -50,20 +50,20 @@ func makePackageDetailHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 		v := r.URL.Query().Get("version")
 		repo := r.URL.Query().Get("repo")
 
-		status, err, res := PackageDetailHandler(p, repo, v, settings, apiReqLogger)
+		status, res, err := PackageDetailHandler(p, repo, v, settings, apiReqLogger)
 
 		returnJSON(w, r, res, err, status)
 	}
 }
 
 // Find all chart matching a specific query, such as ?query=mysql or ?repo=stable.
-func chartSearchHandler(query string, repo string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, interface{}) {
+func chartSearchHandler(query string, repo string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, interface{}, error) {
 	results, err := app_search.FindCharts(settings, query, repo, "", logger)
 	if err != nil {
-		return http.StatusInternalServerError, err, nil
+		return http.StatusInternalServerError, nil, err
 	}
 
-	return http.StatusOK, nil, results
+	return http.StatusOK, results, nil
 }
 
 type Package struct {
@@ -72,11 +72,11 @@ type Package struct {
 }
 
 // Return a list of all packages paired with all available versions of the package.
-func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, error, []Package) {
+func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (int, []Package, error) {
 	results, err := app_search.GetAllCharts(settings, logger)
 
 	if err != nil {
-		return http.StatusInternalServerError, err, nil
+		return http.StatusInternalServerError, nil, err
 	}
 
 	packagesAllVersions := app_search.GroupResultsByName(results)
@@ -90,7 +90,7 @@ func allPackagesHandler(settings *helm_env.EnvSettings, logger *logrus.Entry) (i
 		packagesWithVersions[p_i] = p
 	}
 
-	return http.StatusOK, nil, packagesWithVersions
+	return http.StatusOK, packagesWithVersions, nil
 }
 
 func makeListPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
@@ -103,9 +103,9 @@ func makeListPackagesHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 		var err error
 		var res interface{}
 		if query != "" || repo != "" {
-			status, err, res = chartSearchHandler(query, repo, settings, apiReqLogger)
+			status, res, err = chartSearchHandler(query, repo, settings, apiReqLogger)
 		} else {
-			status, err, res = allPackagesHandler(settings, apiReqLogger)
+			status, res, err = allPackagesHandler(settings, apiReqLogger)
 		}
 
 		returnJSON(w, r, res, err, status)
