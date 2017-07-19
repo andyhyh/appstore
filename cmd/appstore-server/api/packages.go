@@ -23,10 +23,18 @@ type PackageAppstoreMetaData struct {
 	Repo string `json:"repo"`
 }
 
+const (
+	defaultRepo = "stable"
+)
+
 // Show all information about a given package / chart
 func PackageDetailHandler(packageName, repo, version string, settings *helm_env.EnvSettings, logger *logrus.Entry) (int, *chart.Chart, error) {
 	if packageName == "" {
 		return http.StatusBadRequest, nil, fmt.Errorf("no package specified")
+	}
+
+	if repo == "" {
+		repo = defaultRepo
 	}
 
 	// TODO: Handle TLS related things:
