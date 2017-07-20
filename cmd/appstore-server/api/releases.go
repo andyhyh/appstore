@@ -155,6 +155,7 @@ func makeReleaseDetailHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
 }
 
 type releaseStatus struct {
+	Name         string                       `json:"name"`
 	LastDeployed string                       `json:"last_deployed"`
 	Namespace    string                       `json:"namespace"`
 	Status       string                       `json:"status"`
@@ -177,7 +178,7 @@ func releaseStatusHandler(releaseName string, settings *helm_env.EnvSettings, lo
 
 	info := rs.Info
 	resources := releaseutil.ParseResources(info.Status.Resources)
-	return http.StatusOK, releaseStatus{ptypes.TimestampString(info.GetLastDeployed()), rs.Namespace, info.Status.Code.String(), resources}, err
+	return http.StatusOK, releaseStatus{releaseName, ptypes.TimestampString(info.GetLastDeployed()), rs.Namespace, info.Status.Code.String(), resources}, err
 }
 
 func makeReleaseStatusHandler(settings *helm_env.EnvSettings) http.HandlerFunc {
