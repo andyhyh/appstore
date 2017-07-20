@@ -69,7 +69,7 @@ func main() {
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Dataporten-Token", "X-Dataporten-Clientid", "X-Dataporten-Userid", "X-Dataporten-Userid-sec", "X-forwarded-for", "X-forwarded-proto"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	})
